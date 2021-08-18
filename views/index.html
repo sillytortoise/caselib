@@ -1,0 +1,165 @@
+<!doctype html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>特色化案例库</title>
+
+    <script src="https://cdn.bootcdn.net/ajax/libs/jquery/3.6.0/jquery.js"></script>
+    <script type="text/javascript" src="/static/js/jquery.form.js"></script>
+
+
+    <!-- 最新版本的 Bootstrap 核心 CSS 文件 -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css"
+        integrity="sha384-HSMxcRTRxnN+Bdg0JdbxYKrThecOKuH5zCYotlSAcp1+c8xmyTe9GYg1l9a69psu" crossorigin="anonymous">
+    <!-- 可选的 Bootstrap 主题文件（一般不用引入） -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap-theme.min.css"
+        integrity="sha384-6pzBo3FDv/PJ8r2KRkGHifhEocL+1X2rVCTTkUfGk7/0pbek5mMa1upzvWbrUbOZ" crossorigin="anonymous">
+    <!-- 最新的 Bootstrap 核心 JavaScript 文件 -->
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"
+        integrity="sha384-aJ21OjlMXNL5UyIl/XNwTMqvzeRMZH2w8c5cRVpzpU8Y5bApTppSuUkhZXN0VxHd"
+        crossorigin="anonymous"></script>
+    <script src="https://cdn.bootcss.com/blueimp-md5/2.10.0/js/md5.js"></script>
+    <script src="https://unpkg.com/vue"></script>
+    <script src="https://unpkg.com/http-vue-loader"></script>
+    <!-- UIkit CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/uikit@3.7.2/dist/css/uikit.min.css" />
+
+    <!-- UIkit JS -->
+    <script src="https://cdn.jsdelivr.net/npm/uikit@3.7.2/dist/js/uikit.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/uikit@3.7.2/dist/js/uikit-icons.min.js"></script>
+    <!-- 引入样式 -->
+    <link rel="stylesheet" href="https://unpkg.com/element-ui/lib/theme-chalk/index.css">
+    <!-- 引入组件库 -->
+    <script src="https://unpkg.com/element-ui/lib/index.js"></script>
+    <script src="https://cdn.bootcdn.net/ajax/libs/axios/0.21.1/axios.js"></script>
+    <style>
+        html,
+        body {
+            width: 100%;
+            height: 100%;
+        }
+
+        #header {
+            height: 8%;
+        }
+
+        #body {
+            height: 70%;
+        }
+
+        #myTabContent {
+            height: 800px;
+        }
+
+        #main {
+            width: 100%;
+            height: auto;
+            margin: 0 auto;
+        }
+
+        #home,
+        #assess,
+        #piclib {
+            height: 100%;
+        }
+
+        .el-tree-node__content {
+            height: 50px;
+        }
+
+        .el-upload {
+            margin: 0 auto;
+        }
+
+        .upload-demo {
+            text-align: center;
+        }
+
+        input[name="file"] {
+            display: none;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="main" class="panel panel-default">
+        <div class="panel-heading" id="header">
+            <span style="font-size: 25px;">
+                特色化案例库
+            </span>
+            <div style="width: auto;height: auto;float: right">
+                <span>你好，</span>
+                <span class="glyphicon glyphicon-user"></span>
+            </div>
+        </div>
+        <div class="panel-body" id="body">
+            <ul id="myTab" class="nav nav-tabs">
+                <li class="active">
+                    <a href="#home" data-toggle="tab">
+                        我的任务
+                    </a>
+                </li>
+                <li><a href="#assess" data-toggle="tab">测评指标</a></li>
+                <li><a href="#piclib" data-toggle="tab">图片管理</a></li>
+                <li class="dropdown">
+                    <a href="#" id="myTabDrop1" class="dropdown-toggle" data-toggle="dropdown">案例库
+                        <b class="caret"></b>
+                    </a>
+                    <ul class="dropdown-menu" role="menu" aria-labelledby="myTabDrop1">
+                        <li><a href="#jmeter" tabindex="-1" data-toggle="tab">知识图谱</a></li>
+                        <li><a href="#ejb" tabindex="-1" data-toggle="tab">ejb</a></li>
+                    </ul>
+                </li>
+            </ul>
+            <div id="myTabContent" class="tab-content">
+                <div class="tab-pane fade in active" id="home">
+                    <mytask></mytask>
+                </div>
+                <div class="tab-pane fade" id="assess">
+                    <myassess></myassess>
+                </div>
+                <div class="tab-pane fade" id="piclib">
+                    <pics></pics>
+
+                </div>
+                <div class="tab-pane fade" id="jmeter">
+                    <p>jMeter 是一款开源的测试软件。它是 100% 纯 Java 应用程序，用于负载和性能测试。</p>
+                </div>
+                <div class="tab-pane fade" id="ejb">
+                    <p>Enterprise Java Beans（EJB）是一个创建高度可扩展性和强大企业级应用程序的开发架构，部署在兼容应用程序服务器（比如 JBOSS、Web Logic 等）的 J2EE 上。
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+</body>
+
+</html>
+
+<script>
+    const task = new Vue({
+        el: "#home",
+        components: {
+            'mytask': httpVueLoader('task.vue')
+        }
+    })
+
+    const assess = new Vue({
+        el: "#assess",
+        components: {
+            'myassess': httpVueLoader('assess.vue')
+        }
+    })
+
+    const pic = new Vue({
+        el: "#piclib",
+        components: {
+            'pics': httpVueLoader('pics.vue')
+        }
+    })
+
+</script>

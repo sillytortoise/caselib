@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="zh-CN">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <title>登录</title>
+
+  <script src="https://cdn.bootcdn.net/ajax/libs/jquery/3.6.0/jquery.js"></script>
+
+  <!-- 最新版本的 Bootstrap 核心 CSS 文件 -->
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css"
+    integrity="sha384-HSMxcRTRxnN+Bdg0JdbxYKrThecOKuH5zCYotlSAcp1+c8xmyTe9GYg1l9a69psu" crossorigin="anonymous">
+  <!-- 可选的 Bootstrap 主题文件（一般不用引入） -->
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap-theme.min.css"
+    integrity="sha384-6pzBo3FDv/PJ8r2KRkGHifhEocL+1X2rVCTTkUfGk7/0pbek5mMa1upzvWbrUbOZ" crossorigin="anonymous">
+  <!-- 最新的 Bootstrap 核心 JavaScript 文件 -->
+  <script src="https://stackpath.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"
+    integrity="sha384-aJ21OjlMXNL5UyIl/XNwTMqvzeRMZH2w8c5cRVpzpU8Y5bApTppSuUkhZXN0VxHd"
+    crossorigin="anonymous"></script>
+  <script src="https://cdn.bootcss.com/blueimp-md5/2.10.0/js/md5.js"></script>
+
+  <style>
+    .bd-placeholder-img {
+      font-size: 1.125rem;
+      text-anchor: middle;
+      -webkit-user-select: none;
+      -moz-user-select: none;
+      -ms-user-select: none;
+      user-select: none;
+    }
+
+    body {
+      width: 100%;
+      height: 100%;
+      background-image: url("../static/img/back.jpg");
+      background-size: 100% 100%;
+    }
+
+    @media (min-width: 768px) {
+      .bd-placeholder-img-lg {
+        font-size: 3.5rem;
+      }
+    }
+
+    #iframe {
+      visibility: hidden;
+    }
+  </style>
+
+
+  <!-- Custom styles for this template -->
+  <link href="/static/css/signin.css" rel="stylesheet">
+</head>
+
+<body class="text-center">
+
+  <form class="form-signin" target="iframe">
+    <h1 class="h3 mb-3 font-weight-normal">请登录</h1>
+    <label for="inputEmail" class="sr-only">用户名</label>
+    <input name="user" id="inputEmail" class="form-control" placeholder="用户名" required autofocus>
+    <label for="inputPassword" class="sr-only">密码</label>
+    <input name="pwd" type="password" id="inputPassword" class="form-control" placeholder="密码" required>
+    <div class="checkbox mb-3">
+      <label>
+        <input type="checkbox" value="remember-me"> 记住我
+      </label>
+      <label>
+        <a style="font:italic bold 12px/30px arial,sans-serif;" href="#">没有账号？请注册</a>
+      </label>
+    </div>
+    <button class="btn btn-lg btn-primary btn-block" type="button" onclick="">登录</button>
+    <p>众测解决方案部</p>
+  </form>
+  <!-- <iframe name="iframe" id="iframe"></iframe> -->
+
+</body>
+
+<script>
+  const submit = () => {
+    $.ajax({
+
+    })
+  };
+
+  $(function () {
+    console.log(md5("I'm steve"));
+
+  })
+</script>
+
+</html>
