@@ -1,10 +1,7 @@
 <template>
 	<div id="bigpanel" class="panel panel-default">
-		<div class="page-header">
+		<div class="panel-body">
 			<myupload></myupload>
-		</div>
-		<div class="panel-default" style="width: 95%; height: 80%">
-			<div class="panel-body">这是一个panel</div>
 		</div>
 	</div>
 </template>
@@ -24,5 +21,6 @@ module.exports = {
 <style scoped>
 #bigpanel {
 	height: auto;
+	min-height: 80%;
 }
 </style>

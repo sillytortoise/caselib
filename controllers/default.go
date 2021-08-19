@@ -1,10 +1,16 @@
 package controllers
 
 import (
+	"crypto/md5"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"math/rand"
+	"os"
+	"path"
 	"regexp"
+	"strings"
+	"time"
 
 	"github.com/astaxie/beego"
 	"github.com/neo4j/neo4j-go-driver/v4/neo4j"
@@ -181,7 +187,51 @@ func (c *Modlevel2Controller) Post() {
 }
 
 func (c *PicsController) Post() {
-	_, h, _ := c.GetFile("file")
-	fmt.Println(h)
+	f, h, _ := c.GetFile("file") //获取上传的文件
+	ext := path.Ext(h.Filename)
+
+	//创建目录
+	uploadDir := "static/upload/" + time.Now().Format("2006/01/02/")
+	err := os.MkdirAll(uploadDir, 777)
+	if err != nil {
+		c.Ctx.WriteString(fmt.Sprintf("%v", err))
+		return
+	}
+	//构造文件名称
+	rand.Seed(time.Now().UnixNano())
+	randNum := fmt.Sprintf("%d", rand.Intn(9999)+1000)
+	hashName := md5.Sum([]byte(time.Now().Format("2006_01_02_15_04_05_") + randNum))
+
+	fileName := fmt.Sprintf("%x", hashName) + ext
+	//c.Ctx.WriteString(  fileName )
+
+	fpath := uploadDir + fileName
+	defer f.Close() //关闭上传的文件，不然的话会出现临时文件不能清除的情况
+	err = c.SaveToFile("file", fpath)
+	if err != nil {
+		c.Ctx.WriteString(fmt.Sprintf("%v", err))
+	}
+	driver, err := neo4j.NewDriver(dbUri, neo4j.BasicAuth("neo4j", "980115", ""))
+	if err != nil {
+		panic(err)
+	}
+	defer driver.Close()
+	session := driver.NewSession(neo4j.SessionConfig{})
+	defer session.Close()
+	_, _ = session.WriteTransaction(func(tx neo4j.Transaction) (interface{}, error) {
+		result, err := tx.Run("create(n:Picture{path:$p})", map[string]interface{}{"p": fileName})
+
+		s := c.GetString("select")
+		ss := strings.Split(s, ",")
+
+		for _, i := range ss {
+			fmt.Println(i)
+			_, err = tx.Run("match (n:Assess{id:$s}),(m:Picture{path:$p}) create (n)-[p:POINTS]->(m)", map[string]interface{}{"s": i, "p": fpath})
+		}
+		if err != nil {
+			panic(err)
+		}
+		return result, nil
+	})
 	c.Ctx.WriteString("")
 }
