@@ -46,6 +46,22 @@ type PicsController struct {
 	beego.Controller
 }
 
+type TplController struct {
+	beego.Controller
+}
+
+type CssController struct {
+	beego.Controller
+}
+
+type JsController struct {
+	beego.Controller
+}
+
+type InfoController struct {
+	beego.Controller
+}
+
 type Node struct {
 	Id       string `json:"id"`
 	Item     string `json:"item"`
@@ -234,4 +250,73 @@ func (c *PicsController) Post() {
 		return result, nil
 	})
 	c.Ctx.WriteString("")
+}
+
+func (c *TplController) Get() {
+	uri := c.Ctx.Request.RequestURI
+	b, err := ioutil.ReadFile("./views" + uri) // just pass the file name
+	if err != nil {
+		fmt.Print(err)
+	}
+	c.Ctx.WriteString(string(b))
+}
+
+func (c *CssController) Get() {
+	uri := c.Ctx.Request.RequestURI
+	b, err := ioutil.ReadFile("./static/css" + uri) // just pass the file name
+	if err != nil {
+		fmt.Print(err)
+	}
+	c.Ctx.WriteString(string(b))
+}
+
+func (c *JsController) Get() {
+	uri := c.Ctx.Request.RequestURI
+	b, err := ioutil.ReadFile("./static/js" + uri) // just pass the file name
+	if err != nil {
+		fmt.Print(err)
+	}
+	c.Ctx.WriteString(string(b))
+}
+
+func (c *InfoController) Get() {
+	id := c.GetString("id")
+	fmt.Println(id)
+	driver, err := neo4j.NewDriver(dbUri, neo4j.BasicAuth("neo4j", "980115", ""))
+	if err != nil {
+		panic(err)
+	}
+	defer driver.Close()
+	session := driver.NewSession(neo4j.SessionConfig{})
+	defer session.Close()
+	result, _ := session.ReadTransaction(func(tx neo4j.Transaction) (interface{}, error) {
+		result, err := tx.Run("match(n:Assess) where n.id=$id return n.item as item, n.target as target, n.problem as problem, n.advice as advice, n.priority as p, n.type as t", map[string]interface{}{"id": id})
+		if err != nil {
+			panic(err)
+		}
+		result.Next()
+		r := result.Record()
+		item, _ := r.Get("item")
+		if item == nil {
+			item = ""
+		}
+		target, _ := r.Get("target")
+		if target == nil {
+			target = ""
+		}
+		problem, _ := r.Get("problem")
+		if problem == nil {
+			problem = ""
+		}
+		advice, _ := r.Get("advice")
+		if advice == nil {
+			advice = ""
+		}
+		priority, _ := r.Get("p")
+		t, _ := r.Get("t")
+
+		return Node{id, item.(string), target.(string), problem.(string), advice.(string), priority.(string), t.(string)}, nil
+	})
+	c.Data["json"] = result
+	c.ServeJSON()
 }

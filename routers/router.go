@@ -14,4 +14,8 @@ func init() {
 	beego.Router("/modlevel2", &controllers.Modlevel2Controller{})
 	beego.Router("/*.vue", &controllers.VueController{})
 	beego.Router("/posts", &controllers.PicsController{})
+	beego.Router("/*.html", &controllers.TplController{})
+	beego.Router("/*.css", &controllers.CssController{})
+	beego.Router("/*.js", &controllers.JsController{})
+	beego.Router("/info", &controllers.InfoController{})
 }
