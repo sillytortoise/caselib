@@ -4,7 +4,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-    <title>登录</title>
+    <title>注册</title>
 
     <script src="https://cdn.bootcdn.net/ajax/libs/jquery/3.6.0/jquery.js"></script>
 
@@ -58,12 +58,17 @@
     <form class="form-signin" target="iframe">
         <h1 class="h3 mb-3 font-weight-normal">请注册</h1>
         <label for="inputEmail" class="sr-only">请输入用户名</label>
-        <input name="user" id="inputEmail" class="form-control" placeholder="请输入用户名" required autofocus>
+        <input name="user" id="inputEmail" class="form-control" placeholder="请输入用户名" required autofocus
+            style="display: inline;">
         <label for="inputPassword" class="sr-only">请输入密码</label>
-        <input name="pwd" type="password" id="inputPassword" class="form-control" placeholder="请输入密码" required>
+        <input name="pwd" type="password" id="inputPassword" class="form-control" placeholder="请输入密码 6-10位的字母数字组合"
+            required>
         <label for="inputAgain" class="sr-only">确认密码</label>
-        <input name="pwdAgain" type="password" id="inputAgain" class="form-control" placeholder="再次输入密码" required>
-        <button class="btn btn-lg btn-primary btn-block" type="button" onclick="">注册</button>
+        <input name="pwdagain" type="password" id="inputAgain" class="form-control" placeholder="确认密码" required>
+        <span id="warn1" style="display:inline;color: white;">密码长度不符合</span>
+
+        <span id="warn2" style="color: white;visibility: hidden;">两次输入不一致</span>
+        <button class="btn btn-lg btn-primary btn-block" type="button" onclick="subm()">注册</button>
         <p>众测解决方案部</p>
     </form>
     <!-- <iframe name="iframe" id="iframe"></iframe> -->
@@ -71,14 +76,48 @@
 </body>
 
 <script>
-    const submit = () => {
-        $.ajax({
+    const subm = () => {
+        if ($("input[name='pwd']").val() !== $("input[name='pwdagain']").val()) {
+            alert("两次密码输入不一致");
+        }
+        else if ($("input[name='pwd']").val().length < 6 || $("input[name='pwd']").val().length > 10) {
+            alert("密码长度不符合要求")
+        }
+        else {
+            $.ajax({
+                type: 'POST',
+                url: '/signup',
+                data: { username: $("input[name='user']").val(), password: md5($("input[name='pwd']").val()) },
+                success: function (res) {
+                    if (res == 0) {
+                        alert("此用户名已被注册");
+                    }
+                    else {
+                        alert("注册成功");
+                        window.location.href = "/signin.html";
+                    }
 
-        })
+                }
+            });
+        }
     };
 
     $(function () {
-        console.log(md5("I'm steve"));
+        $("input[name='pwdagain']").bind("input propertychange", function () {
+            if ($("input[name='pwd']").val() != $("input[name='pwdagain']").val()) {
+                $("#warn2").css('visibility', 'visible');
+            }
+            else $("#warn2").css('visibility', 'hidden');
+
+        });
+
+        $("input[name='pwd']").bind("input propertychange", function () {
+            if ($("input[name='pwd']").val().length < 6 || $("input[name='pwd']").val().length > 10) {
+                $("#warn1").css('visibility', 'visible');
+            }
+            else $("#warn1").css('visibility', 'hidden');
+
+        });
 
     })
 </script>

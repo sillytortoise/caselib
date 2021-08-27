@@ -1,6 +1,6 @@
 <template>
-	<div class="block">
-		<span class="demonstration">多选选择任意一级选项</span>
+	<div name="container" class="block">
+		<span class="功能模块"></span>
 		<el-cascader
 			:options="options"
 			filterable="true"
@@ -59,3 +59,9 @@ module.exports = {
 	},
 };
 </script>
+
+<style scoped>
+div[name="container"] {
+	margin-bottom: 20px;
+}
+</style>

@@ -1,0 +1,8 @@
+.vscode/
+.idea/
+/static/img/
+/static/jquery-ui-1.12.1.custom/
+/static/piclib
+/static/upload/
+/tests/
+*.exe

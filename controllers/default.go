@@ -26,6 +26,10 @@ type LoginController struct {
 	beego.Controller
 }
 
+type RegisterController struct {
+	beego.Controller
+}
+
 type AssessTargetController struct {
 	beego.Controller
 }
@@ -62,6 +66,17 @@ type InfoController struct {
 	beego.Controller
 }
 
+type FuncController struct {
+	beego.Controller
+}
+type BVController struct {
+	beego.Controller
+}
+
+type ImageController struct {
+	beego.Controller
+}
+
 type Node struct {
 	Id       string `json:"id"`
 	Item     string `json:"item"`
@@ -94,8 +109,73 @@ func (c *VueController) Get() {
 	c.Ctx.WriteString(string(b))
 }
 
-func (c *LoginController) Get() {
-	c.TplName = "signin.html"
+func (c *LoginController) Post() {
+	username := c.GetString("username")
+	password := c.GetString("password")
+	remember := c.GetString("remember")
+	driver, err := neo4j.NewDriver(dbUri, neo4j.BasicAuth("neo4j", "980115", ""))
+	if err != nil {
+		panic(err)
+	}
+	defer driver.Close()
+	session := driver.NewSession(neo4j.SessionConfig{})
+	defer session.Close()
+	result, _ := session.ReadTransaction(func(tx neo4j.Transaction) (interface{}, error) {
+		records, err := tx.Run("match(n:User) where n.username=$username and n.password=$password return n.username as u", map[string]interface{}{"username": username, "password": password})
+		if err != nil {
+			panic(err)
+		}
+		if records.Next() { //验证通过
+			if remember == "true" {
+				c.Ctx.SetCookie("username", username, time.Hour*24*10)
+				c.Ctx.SetCookie("password", password, time.Hour*24*10)
+			}
+			return "1", err
+		} else { //验证不通过
+			return "0", err
+		}
+
+	})
+	flag, _ := result.(string)
+	c.Ctx.WriteString(flag)
+}
+
+func (c *RegisterController) Post() {
+	username := c.GetString("username")
+	password := c.GetString("password")
+	driver, err := neo4j.NewDriver(dbUri, neo4j.BasicAuth("neo4j", "980115", ""))
+	if err != nil {
+		panic(err)
+	}
+	defer driver.Close()
+	session := driver.NewSession(neo4j.SessionConfig{})
+	defer session.Close()
+	result, _ := session.ReadTransaction(func(tx neo4j.Transaction) (interface{}, error) {
+		records, err := tx.Run("match(n:User) where n.username=$username return n.username as u", map[string]interface{}{"username": username})
+		if err != nil {
+			panic(err)
+		}
+		if records.Next() {
+			return 0, err //已被注册
+		} else {
+			return 1, err
+		}
+	})
+	flag, _ := result.(int)
+	fmt.Println(flag)
+	if flag == 0 {
+		c.Ctx.WriteString("0")
+	} else {
+		_, _ = session.WriteTransaction(func(tx neo4j.Transaction) (interface{}, error) {
+			r, e := tx.Run("create(n:User{username:$username,password:$password,privilege:'plain'})", map[string]interface{}{"username": username, "password": password})
+			if e != nil {
+				panic(e)
+			}
+			return r, e
+		})
+		c.Ctx.WriteString("1")
+	}
+
 }
 
 func (c *AssessTargetController) Get() {
@@ -253,8 +333,8 @@ func (c *PicsController) Post() {
 }
 
 func (c *TplController) Get() {
-	uri := c.Ctx.Request.RequestURI
-	b, err := ioutil.ReadFile("./views" + uri) // just pass the file name
+	uri := c.Ctx.Input.Param(":filename")
+	b, err := ioutil.ReadFile("./views/" + uri) // just pass the file name
 	if err != nil {
 		fmt.Print(err)
 	}
@@ -264,6 +344,15 @@ func (c *TplController) Get() {
 func (c *CssController) Get() {
 	uri := c.Ctx.Request.RequestURI
 	b, err := ioutil.ReadFile("./static/css" + uri) // just pass the file name
+	if err != nil {
+		fmt.Print(err)
+	}
+	c.Ctx.WriteString(string(b))
+}
+
+func (c *ImageController) Get() {
+	uri := c.Ctx.Request.RequestURI
+	b, err := ioutil.ReadFile("./static/img" + uri) // just pass the file name
 	if err != nil {
 		fmt.Print(err)
 	}
@@ -316,6 +405,31 @@ func (c *InfoController) Get() {
 		t, _ := r.Get("t")
 
 		return Node{id, item.(string), target.(string), problem.(string), advice.(string), priority.(string), t.(string)}, nil
+	})
+	c.Data["json"] = result
+	c.ServeJSON()
+}
+
+func (c *FuncController) Get() {
+	driver, err := neo4j.NewDriver(dbUri, neo4j.BasicAuth("neo4j", "980115", ""))
+	if err != nil {
+		panic(err)
+	}
+	defer driver.Close()
+	session := driver.NewSession(neo4j.SessionConfig{})
+	defer session.Close()
+	result, _ := session.ReadTransaction(func(tx neo4j.Transaction) (interface{}, error) {
+		records, err := tx.Run("match (n:Func) return n.name as name", map[string]interface{}{})
+		if err != nil {
+			panic(err)
+		}
+		var functions []string
+		for records.Next() {
+			r := records.Record()
+			rr, _ := r.Get("name")
+			functions = append(functions, rr.(string))
+		}
+		return functions, err
 	})
 	c.Data["json"] = result
 	c.ServeJSON()

@@ -11,6 +11,8 @@
 			:before-close="handleClose"
 			:append-to-body="false"
 			:modal="false"
+			:wrapper-Closable="false"
+			size="100%"
 		>
 			<el-button type="primary" plain icon="el-icon-plus"></el-button>
 			<ul class="list-group">

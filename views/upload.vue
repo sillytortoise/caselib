@@ -20,7 +20,11 @@
 			<div
 				style="display: inline-block; width: 45%;height=200px;vertical-align:top"
 			>
-				<sel @changevalue="setOptions"></sel>
+				<selfunc></selfunc>
+				没有？在这里输入
+				<input placeholder="APP名称" />
+				<input placeholder="版本" />
+				<!--<sel @changevalue="setOptions"></sel>-->
 			</div>
 		</div>
 
@@ -51,6 +55,7 @@ module.exports = {
 	},
 	components: {
 		sel: httpVueLoader("/sel.vue"),
+		selfunc: httpVueLoader("/selfunc.vue"),
 	},
 	methods: {
 		handleRemove(file, fileList) {},

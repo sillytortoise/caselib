@@ -63,30 +63,45 @@
     <input name="pwd" type="password" id="inputPassword" class="form-control" placeholder="密码" required>
     <div class="checkbox mb-3">
       <label>
-        <input type="checkbox" value="remember-me"> 记住我
+        <input type="checkbox" value="remember-me" name="rem">10天内免登录
       </label>
       <label>
-        <a style="font:italic bold 12px/30px arial,sans-serif;" href="#">没有账号？请注册</a>
+        <a style=" font:italic bold 12px/30px arial,sans-serif;color:white" href="/register.html">没有账号？请注册</a>
       </label>
     </div>
-    <button class="btn btn-lg btn-primary btn-block" type="button" onclick="">登录</button>
-    <p>众测解决方案部</p>
+    <button class="btn btn-lg btn-primary btn-block" type="button" onclick="login()">登录</button>
+    <p style="color:white">众测解决方案部</p>
   </form>
   <!-- <iframe name="iframe" id="iframe"></iframe> -->
 
 </body>
 
 <script>
-  const submit = () => {
+  const login = () => {
     $.ajax({
-
-    })
-  };
+      type: 'POST',
+      url: '/login',
+      data: {
+        username: $("input[name='user']").val(),
+        password: md5($("input[name='pwd']").val()),
+        remember: $("input[name='rem']").prop("checked")
+      },
+      success: function (res) {
+        if (res == 1) {
+          window.location.href = `/index.html?username=${$("input[name='user']").val()}`;
+        }
+        else {
+          alert("用户名或密码错误");
+        }
+      },
+      dataType: "json"
+    });
+  }
 
   $(function () {
-    console.log(md5("I'm steve"));
 
-  })
+
+  });
 </script>
 
 </html>
