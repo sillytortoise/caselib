@@ -13,7 +13,7 @@ module.exports = {
 		return {};
 	},
 	components: {
-		myupload: httpVueLoader("upload.vue"),
+		myupload: httpVueLoader("/upload.vue"),
 	},
 };
 </script>

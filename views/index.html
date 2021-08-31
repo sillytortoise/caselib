@@ -94,7 +94,7 @@
                 竞品分析&特色化案例库
             </span>
             <div style="width: auto;height: auto;float: right">
-                <span>你好，</span>
+                <span>你好，{{username}}</span>
                 <span class="glyphicon glyphicon-user"></span>
             </div>
         </div>
@@ -156,21 +156,32 @@
     const task = new Vue({
         el: "#home",
         components: {
-            'mytask': httpVueLoader('task.vue')
+            'mytask': httpVueLoader('/task.vue')
         }
     })
 
     const assess = new Vue({
         el: "#assess",
         components: {
-            'myassess': httpVueLoader('assess.vue')
+            'myassess': httpVueLoader('/assess.vue')
         }
     })
 
     const pic = new Vue({
         el: "#piclib",
         components: {
-            'pics': httpVueLoader('pics.vue')
+            'pics': httpVueLoader('/pics.vue')
+        }
+    })
+
+    const header = new Vue({
+        el: "#header",
+        computed: {
+            username: function () {
+                let str = document.cookie.split(";")[2];
+                let index = str.search("=");
+                return str.substring(index + 1);
+            }
         }
     })
 

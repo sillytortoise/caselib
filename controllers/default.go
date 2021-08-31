@@ -9,6 +9,7 @@ import (
 	"os"
 	"path"
 	"regexp"
+	"strconv"
 	"strings"
 	"time"
 
@@ -77,6 +78,10 @@ type ImageController struct {
 	beego.Controller
 }
 
+type TaskController struct {
+	beego.Controller
+}
+
 type Node struct {
 	Id       string `json:"id"`
 	Item     string `json:"item"`
@@ -96,11 +101,29 @@ type Item struct {
 	Children []interface{} `json:"children"`
 }
 
+type Taskitem struct {
+	Name     string `json:"name"`
+	Created  string `json:"created"`
+	Modified string `json:"modified"`
+	Owner    string `json:"owner"`
+	Type     string `json:"type"`
+}
+
 func (c *MainController) Get() {
-	c.TplName = "index.html"
+	if c.Ctx.GetCookie("username") == "" {
+		c.TplName = "signin.html"
+	} else {
+		c.Data["Username"] = c.Ctx.GetCookie("username")
+		c.TplName = "index.html"
+	}
 }
 
 func (c *VueController) Get() {
+	if c.Ctx.GetCookie("username") == "" {
+		c.TplName = "signin.html"
+	} else {
+		c.TplName = "index.html"
+	}
 	uri := c.Ctx.Request.RequestURI
 	b, err := ioutil.ReadFile("./views" + uri) // just pass the file name
 	if err != nil {
@@ -179,6 +202,11 @@ func (c *RegisterController) Post() {
 }
 
 func (c *AssessTargetController) Get() {
+	if c.Ctx.GetCookie("username") == "" {
+		c.TplName = "signin.html"
+	} else {
+		c.TplName = "index.html"
+	}
 	driver, err := neo4j.NewDriver(dbUri, neo4j.BasicAuth("neo4j", "980115", ""))
 	if err != nil {
 		panic(err)
@@ -333,6 +361,11 @@ func (c *PicsController) Post() {
 }
 
 func (c *TplController) Get() {
+	if c.Ctx.GetCookie("username") == "" {
+		c.TplName = "signin.html"
+	} else {
+		c.TplName = "index.html"
+	}
 	uri := c.Ctx.Input.Param(":filename")
 	b, err := ioutil.ReadFile("./views/" + uri) // just pass the file name
 	if err != nil {
@@ -342,6 +375,11 @@ func (c *TplController) Get() {
 }
 
 func (c *CssController) Get() {
+	if c.Ctx.GetCookie("username") == "" {
+		c.TplName = "signin.html"
+	} else {
+		c.TplName = "index.html"
+	}
 	uri := c.Ctx.Request.RequestURI
 	b, err := ioutil.ReadFile("./static/css" + uri) // just pass the file name
 	if err != nil {
@@ -351,6 +389,11 @@ func (c *CssController) Get() {
 }
 
 func (c *ImageController) Get() {
+	if c.Ctx.GetCookie("username") == "" {
+		c.TplName = "signin.html"
+	} else {
+		c.TplName = "index.html"
+	}
 	uri := c.Ctx.Request.RequestURI
 	b, err := ioutil.ReadFile("./static/img" + uri) // just pass the file name
 	if err != nil {
@@ -360,6 +403,11 @@ func (c *ImageController) Get() {
 }
 
 func (c *JsController) Get() {
+	if c.Ctx.GetCookie("username") == "" {
+		c.TplName = "signin.html"
+	} else {
+		c.TplName = "index.html"
+	}
 	uri := c.Ctx.Request.RequestURI
 	b, err := ioutil.ReadFile("./static/js" + uri) // just pass the file name
 	if err != nil {
@@ -369,6 +417,11 @@ func (c *JsController) Get() {
 }
 
 func (c *InfoController) Get() {
+	if c.Ctx.GetCookie("username") == "" {
+		c.TplName = "signin.html"
+	} else {
+		c.TplName = "index.html"
+	}
 	id := c.GetString("id")
 	fmt.Println(id)
 	driver, err := neo4j.NewDriver(dbUri, neo4j.BasicAuth("neo4j", "980115", ""))
@@ -411,6 +464,11 @@ func (c *InfoController) Get() {
 }
 
 func (c *FuncController) Get() {
+	if c.Ctx.GetCookie("username") == "" {
+		c.TplName = "signin.html"
+	} else {
+		c.TplName = "index.html"
+	}
 	driver, err := neo4j.NewDriver(dbUri, neo4j.BasicAuth("neo4j", "980115", ""))
 	if err != nil {
 		panic(err)
@@ -433,4 +491,104 @@ func (c *FuncController) Get() {
 	})
 	c.Data["json"] = result
 	c.ServeJSON()
+}
+
+func (c *TaskController) Post() { //创建任务
+	username := c.GetString("username")
+	name := c.GetString("name")
+	t := c.GetString("type")
+	create_time := time.Unix(time.Now().Unix(), 0).Format("2006-01-02 15:04:05")
+	driver, err := neo4j.NewDriver(dbUri, neo4j.BasicAuth("neo4j", "980115", ""))
+	if err != nil {
+		panic(err)
+	}
+	defer driver.Close()
+	session := driver.NewSession(neo4j.SessionConfig{})
+	defer session.Close()
+	r, _ := session.ReadTransaction(func(tx neo4j.Transaction) (interface{}, error) {
+		r, err := tx.Run("match (n:User{username:$username})-[r:Control{permission:'own'}]->(t:Task{name:$name}) return t.name as name", map[string]interface{}{"username": username, "name": name})
+		if err != nil {
+			panic(err)
+		}
+		if r.Next() {
+			return 0, err //有同名的
+		} else {
+			return 1, err
+		}
+	})
+
+	flag, _ := r.(int)
+	if flag == 0 {
+		c.Ctx.WriteString("0")
+		return
+	}
+
+	_, _ = session.WriteTransaction(func(tx neo4j.Transaction) (interface{}, error) {
+		result, err := tx.Run("match (n:User{username:$username}) create (n)-[r:Control{permission:'own'}]->(t:Task{name:$name,t:$t,created:$c,modified:$c,owner:$o})", map[string]interface{}{"username": username, "name": name, "t": t, "c": create_time, "o": username})
+		if err != nil {
+			panic(err)
+		}
+		return result, err
+	})
+	c.Ctx.WriteString("1")
+}
+
+func (c *TaskController) Get() {
+	username := c.GetString("username")
+	page := c.GetString("page")
+	//sort := c.GetString("sort")
+	driver, err := neo4j.NewDriver(dbUri, neo4j.BasicAuth("neo4j", "980115", ""))
+	if err != nil {
+		panic(err)
+	}
+	defer driver.Close()
+	session := driver.NewSession(neo4j.SessionConfig{})
+	defer session.Close()
+	results, _ := session.ReadTransaction(func(tx neo4j.Transaction) (interface{}, error) {
+		pagenum, _ := strconv.Atoi(page)
+		r, err := tx.Run("match (t:Task)<-[r:Control]-(u:User{username:$u}) return t.name as name, t.t as ty, t.created as c, t.modified as m, t.owner as owner order by t.modified desc skip ($page-1)*10 limit 10", map[string]interface{}{"u": username, "page": pagenum})
+		if err != nil {
+			panic(err)
+		}
+		var objs []Taskitem
+		for r.Next() {
+			result := r.Record()
+			name, _ := result.Get("name")
+			ty, _ := result.Get("ty")
+			created, _ := result.Get("c")
+			modified, _ := result.Get("m")
+			owner, _ := result.Get("owner")
+			objs = append(objs, Taskitem{name.(string), created.(string), modified.(string), owner.(string), ty.(string)})
+		}
+		return objs, nil
+	})
+	c.Data["json"] = results
+	c.ServeJSON()
+}
+
+func (c *TaskController) Total() {
+	username := c.GetString("username")
+	driver, err := neo4j.NewDriver(dbUri, neo4j.BasicAuth("neo4j", "980115", ""))
+	if err != nil {
+		panic(err)
+	}
+	defer driver.Close()
+	session := driver.NewSession(neo4j.SessionConfig{})
+	defer session.Close()
+	results, _ := session.ReadTransaction(func(tx neo4j.Transaction) (interface{}, error) {
+		r, err := tx.Run("match (t:Task)<-[r:Control]-(u:User{username:$u}) return count(*) as count", map[string]interface{}{"u": username})
+		if err != nil {
+			panic(err)
+		}
+		if r.Next() {
+			record := r.Record()
+			r, _ := record.Get("count")
+			return r, err
+		} else {
+			return 0, err
+		}
+	})
+	rstr := strconv.Itoa(int(results.(int64)))
+	c.Ctx.WriteString(rstr)
+
 }

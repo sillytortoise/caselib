@@ -4,7 +4,13 @@
 			<div class="panel-body container" style="padding: 4px">
 				<div class="row">
 					<span class="col-md-1"></span>
-					<button class="btn btn-primary col-md-2">新建</button>
+					<button
+						class="btn btn-primary col-md-2"
+						data-toggle="modal"
+						data-target="#mymodal"
+					>
+						新建
+					</button>
 					<span class="col-md-1"></span>
 					<div class="input-group col-md-4" id="sort">
 						<input
@@ -21,123 +27,97 @@
 					</div>
 					<span class="col-md-1"></span>
 					<div class="btn-group btn-group-sm col-md-3" style="margin: 0 auto">
-						<button type="button" class="btn btn-default">按钮 1</button>
-						<button type="button" class="btn btn-default">按钮 2</button>
-						<button type="button" class="btn btn-default">按钮 3</button>
+						<button
+							type="button"
+							class="btn btn-default"
+							@click="create_time_sort"
+						>
+							创建时间
+							<span class="glyphicon glyphicon-sort-by-attributes"></span>
+						</button>
+						<button type="button" class="btn btn-default">最后修改</button>
 					</div>
 				</div>
+				<div class="modal fade" tabindex="-1" role="dialog" id="mymodal">
+					<div class="modal-dialog" role="document">
+						<div class="modal-content">
+							<div class="modal-header">
+								<button
+									type="button"
+									class="close"
+									data-dismiss="modal"
+									aria-label="Close"
+								>
+									<span aria-hidden="true">&times;</span>
+								</button>
+								<h4 class="modal-title">创建任务</h4>
+							</div>
+							<div class="modal-body">
+								<el-input v-model="input" placeholder="任务名称"></el-input
+								><br />
+								<el-radio v-model="radio" label="1" checked>竞品分析</el-radio>
+								<el-radio v-model="radio" label="2" checked
+									>特色化案例库</el-radio
+								>
+							</div>
+							<div class="modal-footer">
+								<button
+									type="button"
+									class="btn btn-default"
+									data-dismiss="modal"
+								>
+									关闭
+								</button>
+								<button
+									type="button"
+									class="btn btn-primary"
+									@click="submit_task"
+								>
+									提交
+								</button>
+							</div>
+						</div>
+						<!-- /.modal-content -->
+					</div>
+					<!-- /.modal-dialog -->
+				</div>
+				<!-- /.modal -->
 			</div>
 		</div>
 		<div class="panel panel-default" style="height: 100%">
-			<div class="panel-body container">
-				<table class="table table-striped">
+			<div class="panel-body container" style="text-align: center; width: 95%">
+				<table class="table table-striped" style="text-align: left; width: 98%">
 					<thead>
 						<tr>
 							<th>名称</th>
 							<th>创建时间</th>
 							<th>上次修改</th>
 							<th>所有者</th>
-							<th>权限</th>
+							<th>类型</th>
 						</tr>
 					</thead>
 					<tbody>
-						<tr>
-							<td>Tanmay</td>
-							<td>Bangalore</td>
-							<td>560001</td>
-							<td></td>
-							<td></td>
-						</tr>
-						<tr>
-							<td>Sachin</td>
-							<td>Mumbai</td>
-							<td>400003</td>
-							<td></td>
-							<td></td>
-						</tr>
-						<tr>
-							<td>Uma</td>
-							<td>Pune</td>
-							<td>411027</td>
-							<td></td>
-							<td></td>
-						</tr>
-						<tr>
-							<td>Tanmay</td>
-							<td>Bangalore</td>
-							<td>560001</td>
-							<td></td>
-							<td></td>
-						</tr>
-						<tr>
-							<td>Sachin</td>
-							<td>Mumbai</td>
-							<td>400003</td>
-							<td></td>
-							<td></td>
-						</tr>
-						<tr>
-							<td>Uma</td>
-							<td>Pune</td>
-							<td>411027</td>
-							<td></td>
-							<td></td>
-						</tr>
-						<tr>
-							<td>Tanmay</td>
-							<td>Bangalore</td>
-							<td>560001</td>
-							<td></td>
-							<td></td>
-						</tr>
-						<tr>
-							<td>Sachin</td>
-							<td>Mumbai</td>
-							<td>400003</td>
-							<td></td>
-							<td></td>
-						</tr>
-						<tr>
-							<td>Uma</td>
-							<td>Pune</td>
-							<td>411027</td>
-							<td></td>
-							<td></td>
-						</tr>
-						<tr>
-							<td>Tanmay</td>
-							<td>Bangalore</td>
-							<td>560001</td>
-							<td></td>
-							<td></td>
-						</tr>
-						<tr>
-							<td>Sachin</td>
-							<td>Mumbai</td>
-							<td>400003</td>
-							<td></td>
-							<td></td>
-						</tr>
-						<tr>
-							<td>Uma</td>
-							<td>Pune</td>
-							<td>411027</td>
-							<td></td>
-							<td></td>
+						<tr v-for="item in tasks">
+							<td>{{ item.name }}</td>
+							<td>{{ item.created }}</td>
+							<td>{{ item.modified }}</td>
+							<td>{{ item.owner }}</td>
+							<td>
+								<span v-if="item.type == 1">竞品分析</span>
+								<span v-else>特色化案例库</span>
+							</td>
 						</tr>
 					</tbody>
 				</table>
-				<div style="width: 100%; text-align: center">
-					<ul class="pagination">
-						<li><a href="#">&laquo;</a></li>
-						<li><a href="#">1</a></li>
-						<li><a href="#">2</a></li>
-						<li><a href="#">3</a></li>
-						<li><a href="#">4</a></li>
-						<li><a href="#">5</a></li>
-						<li><a href="#">&raquo;</a></li>
-					</ul>
-				</div>
+				<el-pagination
+					background
+					@current-change="handleCurrentChange"
+					:current-page.sync="currentPage"
+					:page-size="10"
+					layout="prev, pager, next, jumper"
+					:total="totalnum"
+				>
+				</el-pagination>
 			</div>
 		</div>
 	</div>
@@ -146,10 +126,105 @@
 <script>
 module.exports = {
 	data: function () {
-		return {};
+		return {
+			radio: "1",
+			input: "",
+			currentPage: 1,
+			totalnum: 0,
+			tasks: null,
+		};
 	},
+	emits: ["changePage"],
 	created: function () {
-		console.log("this is task");
+		this.get_total();
+	},
+	computed: {
+		username: function () {
+			let str = document.cookie.split(";")[2];
+			let index = str.search("=");
+			return str.substring(index + 1);
+		},
+	},
+	methods: {
+		submit_task: function () {
+			if (this.input == "") {
+				this.$message({
+					showClose: true,
+					message: "任务名不可为空",
+					type: "error",
+					duration: 2000,
+				});
+				return;
+			}
+			new Promise((resolve, reject) => {
+				$.ajax({
+					type: "POST",
+					url: `/createtask?username=${this.username}&name=${this.input}&type=${this.radio}`,
+					success: function (res) {
+						$("#mymodal").modal("hide");
+						resolve(res);
+					},
+				});
+			}).then((data) => {
+				if (data == 1) {
+					this.$message({
+						showClose: true,
+						message: "任务创建成功",
+						type: "success",
+						duration: 2000,
+					});
+					this.totalnum += 1;
+					this.get_tasks(this.currentPage);
+				} else {
+					this.$message({
+						showClose: true,
+						message: "失败，已有同名任务",
+						type: "error",
+						duration: 2000,
+					});
+				}
+			});
+		},
+		get_total: function () {
+			axios.get(`/gettotal?username=${this.username}`).then((res) => {
+				this.totalnum = res.data;
+				this.get_tasks(1);
+			});
+		},
+		get_tasks: function (p) {
+			axios
+				.get(`/gettasks?username=${this.username}&page=${p}&sort=lastmodified`)
+				.then((res) => {
+					this.tasks = res.data;
+				});
+		},
+		handleCurrentChange(val) {
+			this.get_tasks(val);
+		},
+		create_time_sort(event) {
+			if (
+				$(event.target).children().first().prop("class") ==
+				"glyphicon glyphicon-sort-by-attributes"
+			) {
+				$(event.target)
+					.children()
+					.first()
+					.removeClass("glyphicon-sort-by-attributes");
+				$(event.target)
+					.children()
+					.first()
+					.addClass("glyphicon-sort-by-attributes-alt");
+			} else {
+				$(event.target)
+					.children()
+					.first()
+					.removeClass("glyphicon-sort-by-attributes-alt");
+				$(event.target)
+					.children()
+					.first()
+					.addClass("glyphicon-sort-by-attributes");
+			}
+		},
 	},
 };
 </script>
@@ -173,7 +248,7 @@ input {
 
 input:focus {
 	border-width: 2px;
-	border-color: rgb(203, 234, 238);
+	border-color: rgb(64, 158, 255);
 }
 
 #mytask {
@@ -183,5 +258,9 @@ input:focus {
 tr,
 td {
 	height: 50px;
+}
+
+.el-radio {
+	margin-top: 30px;
 }
 </style>

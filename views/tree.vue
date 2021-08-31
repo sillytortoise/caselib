@@ -15,7 +15,7 @@
 				:filter-node-method="filterNode"
 				:expand-on-click-node="false"
 				ref="tree"
-				:props="defaultProps"
+				props="defaultProps"
 				@node-drag-start="handleDragStart"
 				@node-drag-enter="handleDragEnter"
 				@node-drag-leave="handleDragLeave"

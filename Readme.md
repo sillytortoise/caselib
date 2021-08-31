@@ -40,17 +40,15 @@
 
    
 
-4. 创建任务 createtask?username= &name= 
+4. 创建任务 createtask?username= &name= &type=
 
-5. 打开任务（总页面为0）直接返回analysis.html
-
-   "pages"的长度为0
+5. 获取任务列表 每页10条 gettasks?username= &page= &sort=
 
    
 
-6. 打开任务(总页面不为0)
+6. 打开竞品分析任务 返回analysis.html ?username= &name= &type=
 
-   task?name= 
+7. 获取一个任务的所有页面 taskpages?username= &name= &type=
 
    ```
    {
@@ -59,15 +57,15 @@
    		{"num":..., "title":...},
    		...
    	],
-       ”lastpage":...
+       
    }
    ```
 
    
 
-7. 查看竞品分析页面<font color="red">某一页</font>(总页面数不为0)
+8. 查看竞品分析页面<font color="red">某一页</font>(总页面数不为0)
 
-   ​		task?username= &name= &page=
+   ​		taskcontent?username= &name= &type= &page=
 
    ```json
    {

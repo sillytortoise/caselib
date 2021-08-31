@@ -9,7 +9,7 @@
 <script>
 module.exports = {
 	components: {
-		mytree: httpVueLoader("tree.vue"),
+		mytree: httpVueLoader("/tree.vue"),
 	},
 	data() {
 		return {};
