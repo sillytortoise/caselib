@@ -28,5 +28,7 @@ func init() {
 	beego.Router("/delete_task", &controllers.TaskController{}, "*:Delete")
 	beego.Router("/:user/:name", &controllers.PageController{})
 	beego.Router("/:user/:name/get_pages", &controllers.PageController{}, "get:Get_pages")
+	beego.Router("/:user/:name/addtoend", &controllers.PageController{}, "get:Addtoend")
+	beego.Router("/:user/:name/deletepage", &controllers.PageController{}, "get:DeletePage")
 
 }

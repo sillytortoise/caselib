@@ -118,6 +118,14 @@ type PageOutline struct {
 	Order int64  `json:"order"`
 }
 
+type Page struct {
+	Title   string `json:"title"`
+	Target  string `json:"target"`
+	Problem string `json:"problem"`
+	Pic     string `json:"pic"`
+	Advice  string `json:"advice"`
+}
+
 func (c *MainController) Get() {
 	if c.Ctx.GetCookie("username") == "" {
 		c.TplName = "signin.html"
@@ -516,7 +524,7 @@ func (c *TaskController) Post() { //创建任务
 	}
 
 	_, _ = session.WriteTransaction(func(tx neo4j.Transaction) (interface{}, error) {
-		result, err := tx.Run("match (n:User{username:$username}) create (n)-[r:Control{permission:'own'}]->(t:Task{name:$name,t:$t,created:$c,modified:$c,owner:$o,last:1})", map[string]interface{}{"username": username, "name": name, "t": t, "c": create_time, "o": username})
+		result, err := tx.Run("match (n:User{username:$username}) create (n)-[r:Control{permission:'own'}]->(t:Task{name:$name,t:$t,created:$c,modified:$c,owner:$o,last:1,totalnum:1})", map[string]interface{}{"username": username, "name": name, "t": t, "c": create_time, "o": username})
 		if err != nil {
 			panic(err)
 		}
@@ -614,7 +622,43 @@ func (c *TaskController) Delete() {
 }
 
 func (c *PageController) Get() {
-	c.TplName = "analysis.html"
+	page := c.GetString("p")
+	if page == "" {
+		c.TplName = "analysis.html"
+		return
+	}
+	driver, err := neo4j.NewDriver(dbUri, neo4j.BasicAuth("neo4j", "980115", ""))
+	if err != nil {
+		panic(err)
+	}
+	user := c.Ctx.Input.Param(":user")
+	name := c.Ctx.Input.Param(":name")
+	defer driver.Close()
+	session := driver.NewSession(neo4j.SessionConfig{})
+	defer session.Close()
+	result, _ := session.ReadTransaction(func(tx neo4j.Transaction) (interface{}, error) {
+		r, err := tx.Run("match (u:User{username:$user})-[r:Control]->(t:Task{name:$name}),(t)-[i:include]->(p:Page{order:$order}) return p.title as title, p.target as target, p.problem as problem, p.pic as pic, p.advice as advice", map[string]interface{}{"user": user, "name": name, "order": page})
+		if err != nil {
+			panic(err)
+		}
+		var obj Page
+		if r.Next() {
+			record := r.Record()
+			title, _ := record.Get("title")
+			target, _ := record.Get("target")
+			problem, _ := record.Get("problem")
+			pic, _ := record.Get("pic")
+			advice, _ := record.Get("advice")
+			obj.Title, _ = title.(string)
+			obj.Target, _ = target.(string)
+			obj.Problem, _ = problem.(string)
+			obj.Pic, _ = pic.(string)
+			obj.Advice, _ = advice.(string)
+		}
+		return obj, nil
+	})
+	c.Data["json"] = result
+	c.ServeJSON()
 }
 
 func (c *PageController) Get_pages() {
@@ -645,4 +689,45 @@ func (c *PageController) Get_pages() {
 	})
 	c.Data["json"] = result
 	c.ServeJSON()
+}
+
+func (c *PageController) Addtoend() {
+	user := c.Ctx.Input.Param(":user")
+	name := c.Ctx.Input.Param(":name")
+	driver, err := neo4j.NewDriver(dbUri, neo4j.BasicAuth("neo4j", "980115", ""))
+	if err != nil {
+		panic(err)
+	}
+	defer driver.Close()
+	session := driver.NewSession(neo4j.SessionConfig{})
+	defer session.Close()
+	_, _ = session.WriteTransaction(func(tx neo4j.Transaction) (interface{}, error) {
+		_, err := tx.Run("match (u:User{username:$user})-[r:Control]->(t:Task{name:$name}) create (t)-[i:Include]->(p:Page{title:'',order:t.totalnum+1}) set t.totalnum=t.totalnum+1", map[string]interface{}{"name": name, "user": user})
+		if err != nil {
+			panic(err)
+		}
+		return nil, nil
+	})
+	c.Ctx.WriteString("1")
+}
+
+func (c *PageController) DeletePage(){
+	p:=c.GetString("p")
+	user := c.Ctx.Input.Param(":user")
+	name := c.Ctx.Input.Param(":name")
+	driver, err := neo4j.NewDriver(dbUri, neo4j.BasicAuth("neo4j", "980115", ""))
+	if err != nil {
+		panic(err)
+	}
+	defer driver.Close()
+	session := driver.NewSession(neo4j.SessionConfig{})
+	defer session.Close()
+	_, _ = session.WriteTransaction(func(tx neo4j.Transaction) (interface{}, error) {
+		_, err := tx.Run("match (u:User{username:$user})-[r:Control]->(t:Task{name:$name}),(t)-[i:Include]->(p:Page{order:$order}) delete i,p", map[string]interface{}{"name": name, "user": user, "order":p})
+		if err != nil{
+			panic(err)
+		}
+		_, err := tx.Run("match (u:User{username:$user})-[r:Control]->(t:Task{name:$name}),(t)-[i:Include]->(p:Page{order:$order}) where ", map[string]interface{}{"name": name, "user": user, "order":p})
+
+
 }

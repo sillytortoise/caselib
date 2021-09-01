@@ -15,12 +15,18 @@
 			:wrapper-Closable="false"
 			size="100%"
 		>
-			<el-button type="primary" plain icon="el-icon-plus"></el-button>
+			<el-button
+				type="primary"
+				plain
+				icon="el-icon-plus"
+				@click="addtoend"
+			></el-button>
 			<ul class="list-group" style="text-align: left">
 				<li
 					class="list-group-item"
 					v-for="(item, i) in data"
 					:class="{ selected: i == currentPage - 1 }"
+					@click="choosePage"
 				>
 					{{ item.title !== "" ? item.title : "未命名" }}
 				</li>
@@ -36,9 +42,11 @@ module.exports = {
 			drawer: false,
 			direction: "rtl",
 			currentPage: 1,
+			data: null,
+			task: window.location.pathname.split("/")[2],
 		};
 	},
-	props: ["data"],
+	emits: ["changepage"],
 	methods: {
 		handleClose(done) {
 			let height = $(".panel-default").css("height").slice(0, -2);
@@ -57,8 +65,30 @@ module.exports = {
 			$(".panel-default").css("height", height.toFixed(2) + "px");
 			$(".panel-default").css("width", width.toFixed(2) + "px");
 		},
+		addtoend() {
+			axios.get(`${this.task}/addtoend`).then((res) => {
+				this.get_pages();
+			});
+		},
+		get_pages() {
+			axios.get(`${this.task}/get_pages`).then((res) => {
+				this.data = res.data;
+			});
+		},
+		choosePage(event) {
+			$(".selected").removeClass("selected");
+			$(event.target).addClass("selected");
+			let page = $(event.target).index();
+			this.currentPage = page + 1;
+			this.$emit("changepage", this.currentPage);
+		},
+		deletePage(num) {
+			axios.get(`${this.task}/deletepage?p=num`).then((res) => {});
+		},
 	},
-	created: function () {},
+	created: function () {
+		this.get_pages();
+	},
 };
 </script>
 
