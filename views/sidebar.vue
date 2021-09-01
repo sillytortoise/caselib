@@ -8,6 +8,7 @@
 			title="我是标题"
 			:visible.sync="drawer"
 			direction="ltr"
+			@open="handleOpen"
 			:before-close="handleClose"
 			:append-to-body="false"
 			:modal="false"
@@ -15,7 +16,7 @@
 			size="100%"
 		>
 			<el-button type="primary" plain icon="el-icon-plus"></el-button>
-			<ul class="list-group">
+			<ul class="list-group" style="text-align: left">
 				<li class="list-group-item">Cras justo odio</li>
 				<li class="list-group-item">Dapibus ac facilisis in</li>
 				<li class="list-group-item">Morbi leo risus</li>
@@ -36,7 +37,21 @@ module.exports = {
 	},
 	methods: {
 		handleClose(done) {
+			let height = $(".panel-default").css("height").slice(0, -2);
+			let width = $(".panel-default").css("width").slice(0, -2);
+			width *= 1.25;
+			height *= 1.25;
+			$(".panel-default").css("height", height.toFixed(2) + "px");
+			$(".panel-default").css("width", width.toFixed(2) + "px");
 			done();
+		},
+		handleOpen() {
+			let height = $(".panel-default").css("height").slice(0, -2);
+			let width = $(".panel-default").css("width").slice(0, -2);
+			width *= 0.8;
+			height *= 0.8;
+			$(".panel-default").css("height", height.toFixed(2) + "px");
+			$(".panel-default").css("width", width.toFixed(2) + "px");
 		},
 	},
 	created: function () {},

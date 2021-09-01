@@ -33,9 +33,18 @@
 							@click="create_time_sort"
 						>
 							创建时间
-							<span class="glyphicon glyphicon-sort-by-attributes"></span>
+							<span class="glyphicon glyphicon-sort-by-attributes-alt"></span>
 						</button>
-						<button type="button" class="btn btn-default">最后修改</button>
+
+						<button
+							type="button"
+							class="btn btn-primary"
+							@click="modified_time_sort"
+						>
+							最后修改<span
+								class="glyphicon glyphicon-sort-by-attributes-alt"
+							></span>
+						</button>
 					</div>
 				</div>
 				<div class="modal fade" tabindex="-1" role="dialog" id="mymodal">
@@ -84,9 +93,16 @@
 				<!-- /.modal -->
 			</div>
 		</div>
-		<div class="panel panel-default" style="height: 100%">
-			<div class="panel-body container" style="text-align: center; width: 95%">
-				<table class="table table-striped" style="text-align: left; width: 98%">
+		<div class="panel panel-default" style="height: 100%; text-align: center">
+			<div
+				class="panel-body container"
+				style="text-align: center; width: 95%; height: 650px"
+			>
+				<table
+					v-loading="loading"
+					class="table table-hover"
+					style="text-align: left; width: 98%"
+				>
 					<thead>
 						<tr>
 							<th>名称</th>
@@ -94,10 +110,11 @@
 							<th>上次修改</th>
 							<th>所有者</th>
 							<th>类型</th>
+							<th>操作</th>
 						</tr>
 					</thead>
 					<tbody>
-						<tr v-for="item in tasks">
+						<tr v-for="item in tasks" @click="choose_task" :name="item.name">
 							<td>{{ item.name }}</td>
 							<td>{{ item.created }}</td>
 							<td>{{ item.modified }}</td>
@@ -106,19 +123,31 @@
 								<span v-if="item.type == 1">竞品分析</span>
 								<span v-else>特色化案例库</span>
 							</td>
+							<td>
+								<button
+									class="btn btn-sm btn-warning"
+									@click.stop="delete_task"
+									:name="item.name"
+								>
+									<span
+										class="glyphicon glyphicon-trash"
+										:name="item.name"
+									></span>
+								</button>
+							</td>
 						</tr>
 					</tbody>
 				</table>
-				<el-pagination
-					background
-					@current-change="handleCurrentChange"
-					:current-page.sync="currentPage"
-					:page-size="10"
-					layout="prev, pager, next, jumper"
-					:total="totalnum"
-				>
-				</el-pagination>
 			</div>
+			<el-pagination
+				background
+				@current-change="handleCurrentChange"
+				:current-page.sync="currentPage"
+				:page-size="10"
+				layout="prev, pager, next, jumper"
+				:total="totalnum"
+			>
+			</el-pagination>
 		</div>
 	</div>
 </template>
@@ -132,6 +161,7 @@ module.exports = {
 			currentPage: 1,
 			totalnum: 0,
 			tasks: null,
+			loading: true,
 		};
 	},
 	emits: ["changePage"],
@@ -192,38 +222,101 @@ module.exports = {
 			});
 		},
 		get_tasks: function (p) {
+			this.loading = true;
 			axios
 				.get(`/gettasks?username=${this.username}&page=${p}&sort=lastmodified`)
 				.then((res) => {
 					this.tasks = res.data;
+					this.loading = false;
 				});
 		},
 		handleCurrentChange(val) {
 			this.get_tasks(val);
 		},
 		create_time_sort(event) {
-			if (
-				$(event.target).children().first().prop("class") ==
-				"glyphicon glyphicon-sort-by-attributes"
-			) {
-				$(event.target)
-					.children()
-					.first()
-					.removeClass("glyphicon-sort-by-attributes");
-				$(event.target)
-					.children()
-					.first()
-					.addClass("glyphicon-sort-by-attributes-alt");
-			} else {
-				$(event.target)
-					.children()
-					.first()
-					.removeClass("glyphicon-sort-by-attributes-alt");
-				$(event.target)
-					.children()
-					.first()
-					.addClass("glyphicon-sort-by-attributes");
+			if ($(event.target).prop("class") === "btn btn-primary") {
+				if (
+					$(event.target).children().first().prop("class") ==
+					"glyphicon glyphicon-sort-by-attributes"
+				) {
+					$(event.target)
+						.children()
+						.first()
+						.removeClass("glyphicon-sort-by-attributes");
+					$(event.target)
+						.children()
+						.first()
+						.addClass("glyphicon-sort-by-attributes-alt");
+				} else {
+					$(event.target)
+						.children()
+						.first()
+						.removeClass("glyphicon-sort-by-attributes-alt");
+					$(event.target)
+						.children()
+						.first()
+						.addClass("glyphicon-sort-by-attributes");
+				}
 			}
+			$(event.target).removeClass("btn-default");
+			$(event.target).addClass("btn-primary");
+			$(event.target).next().removeClass("btn-primary");
+		},
+		modified_time_sort: function (event) {
+			if ($(event.target).prop("class") === "btn btn-primary") {
+				if (
+					$(event.target).children().first().prop("class") ==
+					"glyphicon glyphicon-sort-by-attributes"
+				) {
+					$(event.target)
+						.children()
+						.first()
+						.removeClass("glyphicon-sort-by-attributes");
+					$(event.target)
+						.children()
+						.first()
+						.addClass("glyphicon-sort-by-attributes-alt");
+				} else {
+					$(event.target)
+						.children()
+						.first()
+						.removeClass("glyphicon-sort-by-attributes-alt");
+					$(event.target)
+						.children()
+						.first()
+						.addClass("glyphicon-sort-by-attributes");
+				}
+			}
+
+			$(event.target).removeClass("btn-default");
+			$(event.target).addClass("btn-primary");
+			$(event.target).prev().removeClass("btn-primary");
+		},
+		choose_task: function (event) {
+			console.log($(event.target).parents("tr").attr("name"));
+		},
+		delete_task: function (event) {
+			axios
+				.get(`/delete_task?name=${$(event.target).attr("name")}`)
+				.then((res) => {
+					if (res.data == 1) {
+						this.$message({
+							showClose: true,
+							message: "任务已删除",
+							type: "success",
+							duration: 2000,
+						});
+						this.totalnum--;
+						this.get_tasks(this.currentPage);
+					} else {
+						this.$message({
+							showClose: true,
+							message: "删除失败",
+							type: "error",
+							duration: 2000,
+						});
+					}
+				});
 		},
 	},
 };

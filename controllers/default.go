@@ -113,7 +113,6 @@ func (c *MainController) Get() {
 	if c.Ctx.GetCookie("username") == "" {
 		c.TplName = "signin.html"
 	} else {
-		c.Data["Username"] = c.Ctx.GetCookie("username")
 		c.TplName = "index.html"
 	}
 }
@@ -121,8 +120,6 @@ func (c *MainController) Get() {
 func (c *VueController) Get() {
 	if c.Ctx.GetCookie("username") == "" {
 		c.TplName = "signin.html"
-	} else {
-		c.TplName = "index.html"
 	}
 	uri := c.Ctx.Request.RequestURI
 	b, err := ioutil.ReadFile("./views" + uri) // just pass the file name
@@ -204,8 +201,6 @@ func (c *RegisterController) Post() {
 func (c *AssessTargetController) Get() {
 	if c.Ctx.GetCookie("username") == "" {
 		c.TplName = "signin.html"
-	} else {
-		c.TplName = "index.html"
 	}
 	driver, err := neo4j.NewDriver(dbUri, neo4j.BasicAuth("neo4j", "980115", ""))
 	if err != nil {
@@ -363,8 +358,6 @@ func (c *PicsController) Post() {
 func (c *TplController) Get() {
 	if c.Ctx.GetCookie("username") == "" {
 		c.TplName = "signin.html"
-	} else {
-		c.TplName = "index.html"
 	}
 	uri := c.Ctx.Input.Param(":filename")
 	b, err := ioutil.ReadFile("./views/" + uri) // just pass the file name
@@ -377,8 +370,6 @@ func (c *TplController) Get() {
 func (c *CssController) Get() {
 	if c.Ctx.GetCookie("username") == "" {
 		c.TplName = "signin.html"
-	} else {
-		c.TplName = "index.html"
 	}
 	uri := c.Ctx.Request.RequestURI
 	b, err := ioutil.ReadFile("./static/css" + uri) // just pass the file name
@@ -391,8 +382,6 @@ func (c *CssController) Get() {
 func (c *ImageController) Get() {
 	if c.Ctx.GetCookie("username") == "" {
 		c.TplName = "signin.html"
-	} else {
-		c.TplName = "index.html"
 	}
 	uri := c.Ctx.Request.RequestURI
 	b, err := ioutil.ReadFile("./static/img" + uri) // just pass the file name
@@ -405,8 +394,6 @@ func (c *ImageController) Get() {
 func (c *JsController) Get() {
 	if c.Ctx.GetCookie("username") == "" {
 		c.TplName = "signin.html"
-	} else {
-		c.TplName = "index.html"
 	}
 	uri := c.Ctx.Request.RequestURI
 	b, err := ioutil.ReadFile("./static/js" + uri) // just pass the file name
@@ -419,8 +406,6 @@ func (c *JsController) Get() {
 func (c *InfoController) Get() {
 	if c.Ctx.GetCookie("username") == "" {
 		c.TplName = "signin.html"
-	} else {
-		c.TplName = "index.html"
 	}
 	id := c.GetString("id")
 	fmt.Println(id)
@@ -466,8 +451,6 @@ func (c *InfoController) Get() {
 func (c *FuncController) Get() {
 	if c.Ctx.GetCookie("username") == "" {
 		c.TplName = "signin.html"
-	} else {
-		c.TplName = "index.html"
 	}
 	driver, err := neo4j.NewDriver(dbUri, neo4j.BasicAuth("neo4j", "980115", ""))
 	if err != nil {
@@ -590,5 +573,29 @@ func (c *TaskController) Total() {
 	})
 	rstr := strconv.Itoa(int(results.(int64)))
 	c.Ctx.WriteString(rstr)
+}
 
+func (c *TaskController) Delete() {
+	username := c.Ctx.GetCookie("username")
+	task_name := c.GetString("name")
+
+	if username == "" {
+		c.TplName = "signin.html"
+	}
+
+	driver, err := neo4j.NewDriver(dbUri, neo4j.BasicAuth("neo4j", "980115", ""))
+	if err != nil {
+		panic(err)
+	}
+	defer driver.Close()
+	session := driver.NewSession(neo4j.SessionConfig{})
+	defer session.Close()
+	_, _ = session.WriteTransaction(func(tx neo4j.Transaction) (interface{}, error) {
+		r, err := tx.Run("match (t:Task{name:$name})<-[r:Control]-(u:User{username:$username}) delete r,t", map[string]interface{}{"name": task_name, "username": username})
+		if err != nil {
+			panic(err)
+		}
+		return r, err
+	})
+	c.Ctx.WriteString("1")
 }

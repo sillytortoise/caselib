@@ -49,8 +49,8 @@
 
         .panel {
             margin-top: 200px;
-            height: 540px;
-            width: 1000px;
+            height: 648px;
+            width: 1200px;
             margin: 0 auto;
         }
 
@@ -85,6 +85,7 @@
 
         .el-drawer__wrapper {
             width: 15%;
+            text-align: center;
         }
 
         input[name="title"] {
@@ -98,10 +99,15 @@
             outline: none;
         }
 
+        th input,
         td input {
             border: 0;
             font-size: 15px;
             background-color: transparent;
+        }
+
+        th input:focus {
+            outline: none;
         }
 
         td input:focus {
@@ -151,8 +157,9 @@
                     <table style="height: 100%;width: 100%;">
                         <thead style="height: 10%;">
                             <tr>
-                                <th @click="uploadThis"
+                                <th
                                     style="border: solid 1px white;width: 20%;background-color: rgb(204, 102, 0);color: white;">
+                                    <input name="imgname" placeholder="输入名称" />
                                 </th>
                                 <th
                                     style="border: solid 1px white;width: 20%;background-color: rgb(14, 108, 141);color: white;">
@@ -170,7 +177,7 @@
                         </thead>
                         <tbody>
                             <tr>
-                                <td @click="uploadThis" style="border: solid 1px white;"><img /></td>
+                                <td style="border: solid 1px white;"><img /></td>
                                 <td style="border: solid 1px white;"><img id="img2" /></td>
                                 <td style="border: solid 1px white;"><img id="img3" /></td>
                                 <td style="border: solid 1px white;"><img id="img4" /></td>
@@ -279,9 +286,6 @@
             },
             upload: function (event) {
                 console.log($(event.target).children()[0]);
-            },
-            uploadThis: function () {
-
             },
             selimg: function () {
                 $('#selimg').modal();
