@@ -17,11 +17,13 @@
 		>
 			<el-button type="primary" plain icon="el-icon-plus"></el-button>
 			<ul class="list-group" style="text-align: left">
-				<li class="list-group-item">Cras justo odio</li>
-				<li class="list-group-item">Dapibus ac facilisis in</li>
-				<li class="list-group-item">Morbi leo risus</li>
-				<li class="list-group-item">Porta ac consectetur ac</li>
-				<li class="list-group-item">Vestibulum at eros</li>
+				<li
+					class="list-group-item"
+					v-for="(item, i) in data"
+					:class="{ selected: i == currentPage - 1 }"
+				>
+					{{ item.title !== "" ? item.title : "未命名" }}
+				</li>
 			</ul>
 		</el-drawer>
 	</div>
@@ -33,8 +35,10 @@ module.exports = {
 		return {
 			drawer: false,
 			direction: "rtl",
+			currentPage: 1,
 		};
 	},
+	props: ["data"],
 	methods: {
 		handleClose(done) {
 			let height = $(".panel-default").css("height").slice(0, -2);
@@ -65,6 +69,11 @@ module.exports = {
 
 .list-group-item:hover {
 	background: #409eff;
+	color: white;
+}
+
+.selected {
+	background: rgb(204, 102, 0);
 	color: white;
 }
 </style>

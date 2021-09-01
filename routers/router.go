@@ -26,5 +26,7 @@ func init() {
 	beego.Router("/gettasks", &controllers.TaskController{})
 	beego.Router("/gettotal", &controllers.TaskController{}, "*:Total")
 	beego.Router("/delete_task", &controllers.TaskController{}, "*:Delete")
+	beego.Router("/:user/:name", &controllers.PageController{})
+	beego.Router("/:user/:name/get_pages", &controllers.PageController{}, "get:Get_pages")
 
 }

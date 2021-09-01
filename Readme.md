@@ -44,11 +44,19 @@
 
 5. 获取任务列表 每页10条 gettasks?username= &page= &sort=
 
+6. 删除任务 delete_task?name=
+
+7. 打开竞品分析任务 返回analysis.html
+
+8. 获取所有页面标题 /:user/:task_name/get_pages
+
+   ```json
+   [{name:'', order: ...},{},...]
+   ```
+
    
 
-6. 打开竞品分析任务 返回analysis.html ?username= &name= &type=
-
-7. 获取一个任务的所有页面 taskpages?username= &name= &type=
+9. 获取一个任务的所有页面 taskpages?username= &name= &type=
 
    ```
    {
@@ -63,7 +71,7 @@
 
    
 
-8. 查看竞品分析页面<font color="red">某一页</font>(总页面数不为0)
+10. 查看竞品分析页面<font color="red">某一页</font>(总页面数不为0)
 
    ​		taskcontent?username= &name= &type= &page=
 

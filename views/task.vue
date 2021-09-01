@@ -293,7 +293,8 @@ module.exports = {
 			$(event.target).prev().removeClass("btn-primary");
 		},
 		choose_task: function (event) {
-			console.log($(event.target).parents("tr").attr("name"));
+			let name = $(event.target).parents("tr").attr("name");
+			window.open(`/${this.username}/${name}`);
 		},
 		delete_task: function (event) {
 			axios
