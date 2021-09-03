@@ -118,124 +118,118 @@
 
 <body>
     <div id="main" style="width: 100%;height: 120%;">
-        <form style="width: 100%;height: 100%; margin: 0 auto;">
 
-            <div class="page-header">
-                <sidebar @changepage="changepage" ref="mysidebar"></sidebar>
-                <input name="title" placeholder="请输入标题" />
-                <span style="float: right; margin-right:5%">
-                    <button class="btn btn-danger" type="button" @click="deletePage"><span
-                            class="glyphicon glyphicon-trash"></span></button>
-                    <button class="btn btn-primary" type="button"><span
-                            class="glyphicon glyphicon-menu-down">新建下一页</span></button>
-                    <button class="btn btn-primary" type="button"><span class="glyphicon glyphicon-plus"
-                            @click="addtoend">新增到尾部</span></button>
-                    <button class="btn btn-default" type="button"><span
-                            class="glyphicon glyphicon-chevron-left"></span></button>
-                    <button class="btn btn-default" type="button"><span
-                            class="glyphicon glyphicon-chevron-right"></span></button>
-                </span>
+        <div class="page-header">
+            <sidebar @changepage="changepage" ref="mysidebar"></sidebar>
+            <input name="title" placeholder="请输入标题" />
 
+            <span style="float: right; margin-right:5%">
+                <button class="btn btn-danger" type="button" @click="deletePage"><span
+                        class="glyphicon glyphicon-trash"></span></button>
+                <button class="btn btn-primary" type="button"><span class="glyphicon glyphicon-menu-down"
+                        @click="addtonext">新建下一页</span></button>
+                <button class="btn btn-primary" type="button"><span class="glyphicon glyphicon-plus"
+                        @click="addtoend">新增到尾部</span></button>
+                <button class="btn btn-default" type="button" @click="showlast"><span
+                        class="glyphicon glyphicon-chevron-left"></span></button>
+                <button class="btn btn-default" type="button" @click="shownext"><span
+                        class="glyphicon glyphicon-chevron-right"></span></button>
+            </span>
 
+        </div>
+
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                <table id="mytable" class="table table-striped table-bordered" style="height: 100%;margin:0">
+                    <tbody>
+                        <tr style="height:50%;background-color:rgb(224, 236, 245)">
+                            <th style="width: 7%;" data-toggle="modal" data-target="#myModal">指标</th>
+                            <td style="width: 42%;" name="target" data-toggle="modal" data-target="#myModal">
+                                {{info.target}}</td>
+                            <th style="width: 7%;">优先级</th>
+                            <td style="width: 11%;" name="p">
+                                <span class="glyphicon glyphicon-star"></span>
+                                <span class="glyphicon glyphicon-star" v-if="info.p!=='低'"></span>
+                                <span class="glyphicon glyphicon-star-empty" v-else></span>
+                                <span class="glyphicon glyphicon-star" v-if="info.p==='高'"></span>
+                                <span class="glyphicon glyphicon-star-empty" v-else></span>
+                            </td>
+                            <th style="width: 12%;">问题类型</th>
+                            <td style="width: 20%;" name="t">{{info.t}}</td>
+                        </tr>
+                        <tr style="height:50%;background-color:rgb(193, 216, 235)">
+                            <th>问题</th>
+                            <td colspan="2"><input name="problem" placeholder="输入问题" /></td>
+                            <th>建议</th>
+                            <td colspan="2"><input name="advice" placeholder="输入建议" /></td>
+                        </tr>
+
+                    </tbody>
+                </table>
             </div>
-            <div class="panel panel-default">
-                <div class="panel-heading">
-                    <table id="mytable" class="table table-striped table-bordered" style="height: 100%;margin:0">
-                        <tbody>
-                            <tr style="height:50%;background-color:rgb(224, 236, 245)">
-                                <th style="width: 7%;" data-toggle="modal" data-target="#myModal">指标</th>
-                                <td style="width: 42%;" name="target" data-toggle="modal" data-target="#myModal">
-                                    {{info.target}}</td>
-                                <th style="width: 7%;">优先级</th>
-                                <td style="width: 11%;" name="p">
-                                    <span class="glyphicon glyphicon-star"></span>
-                                    <span class="glyphicon glyphicon-star" v-if="info.p!=='低'"></span>
-                                    <span class="glyphicon glyphicon-star-empty" v-else></span>
-                                    <span class="glyphicon glyphicon-star" v-if="info.p==='高'"></span>
-                                    <span class="glyphicon glyphicon-star-empty" v-else></span>
-                                </td>
-                                <th style="width: 12%;">问题类型</th>
-                                <td style="width: 20%;" name="t">{{info.t}}</td>
-                            </tr>
-                            <tr style="height:50%;background-color:rgb(193, 216, 235)">
-                                <th>问题</th>
-                                <td colspan="2"><input name="problem" placeholder="输入问题" /></td>
-                                <th>建议</th>
-                                <td colspan="2"><input name="advice" placeholder="输入建议" /></td>
-                            </tr>
-
-                        </tbody>
-                    </table>
-                </div>
-                <div class="panel-body">
-                    <table style="height: 100%;width: 100%;">
-                        <thead style="height: 10%;">
-                            <tr>
-                                <th
-                                    style="border: solid 1px white;width: 20%;background-color: rgb(204, 102, 0);color: white;">
-                                    <input name="imgname" placeholder="输入名称" />
-                                </th>
-                                <th
-                                    style="border: solid 1px white;width: 20%;background-color: rgb(14, 108, 141);color: white;">
-                                    同业参考：</th>
-                                <th
-                                    style="border: solid 1px white;width: 20%;background-color: rgb(14, 108, 141);color: white;">
-                                    同业参考：</th>
-                                <th
-                                    style="border: solid 1px white;width: 20%;background-color: rgb(14, 108, 141);color: white;">
-                                    同业参考：</th>
-                                <th
-                                    style="border: solid 1px white;width: 20%;background-color: rgb(14, 108, 141);color: white;">
-                                    同业参考：</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td style="border: solid 1px white;"><img /></td>
-                                <td style="border: solid 1px white;"><img id="img2" /></td>
-                                <td style="border: solid 1px white;"><img id="img3" /></td>
-                                <td style="border: solid 1px white;"><img id="img4" /></td>
-                                <td style="border: solid 1px white;"><img id="img5" /></td>
-                            </tr>
-                        </tbody>
-                    </table>
-                    <div class="well well-lg" style="position: relative; top:20px;height:100px;padding: 10px;">
-                        <div style="width: 20%;height:150px;display: inline;float: left;">
-
-                            <input type="file" name="pic1" />
-
-                        </div>
-                        <div style="width: 20%;display: inline;float: left;">
-                            <input type="file" name="pic2" />
-                            <button @click="selimg" style="margin-top:20px" type="button" class="btn btn-default"><span
-                                    class="glyphicon glyphicon-picture">选择</span></button>
-                        </div>
-                        <div style="width: 20%;display: inline;float: left;">
-                            <input type="file" name="pic3" />
-                            <button @click="selimg" style="margin-top:20px" type="button" class="btn btn-default"><span
-                                    class="glyphicon glyphicon-picture">选择</span></button>
-
-                        </div>
-                        <div style="width: 20%;display: inline;float: left;">
-                            <input type="file" name="pic4" />
-                            <button @click="selimg" style="margin-top:20px" type="button" class="btn btn-default"><span
-                                    class="glyphicon glyphicon-picture">选择</span></button>
-
-                        </div>
-                        <div style="width: 20%;display: inline;float: left;">
-                            <input type="file" name="pic5" />
-                            <button @click="selimg" style="margin-top:20px" type="button" class="btn btn-default"><span
-                                    class="glyphicon glyphicon-picture">选择</span></button>
-
-                        </div>
+            <div class="panel-body">
+                <table style="height: 100%;width: 100%;">
+                    <thead style="height: 10%;">
+                        <tr>
+                            <th
+                                style="border: solid 1px white;width: 20%;background-color: rgb(204, 102, 0);color: white;">
+                                <input name="imgname" placeholder="输入名称" />
+                            </th>
+                            <th
+                                style="border: solid 1px white;width: 20%;background-color: rgb(14, 108, 141);color: white;">
+                                同业参考：</th>
+                            <th
+                                style="border: solid 1px white;width: 20%;background-color: rgb(14, 108, 141);color: white;">
+                                同业参考：</th>
+                            <th
+                                style="border: solid 1px white;width: 20%;background-color: rgb(14, 108, 141);color: white;">
+                                同业参考：</th>
+                            <th
+                                style="border: solid 1px white;width: 20%;background-color: rgb(14, 108, 141);color: white;">
+                                同业参考：</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td style="border: solid 1px white;"><img /></td>
+                            <td style="border: solid 1px white;"><img id="img2" /></td>
+                            <td style="border: solid 1px white;"><img id="img3" /></td>
+                            <td style="border: solid 1px white;"><img id="img4" /></td>
+                            <td style="border: solid 1px white;"><img id="img5" /></td>
+                        </tr>
+                    </tbody>
+                </table>
+                <div id="imgsel" class="well well-lg" style="position: relative; top:20px;height:100px;padding: 10px;">
+                    <div style="width: 20%;height:150px;display: inline;float: left;">
+                        <el-button type="primary" size="small" @click="beforeUpload" round><span
+                                class="glyphicon glyphicon-cloud-upload">上传</span></el-button>
+                    </div>
+                    <div style="width: 20%;display: inline;float: left;">
+                        <el-button type="primary" size="small" @click="beforeUpload" round><span
+                                class="glyphicon glyphicon-cloud-upload">上传</span></el-button>
+                        <imgbrowser></imgbrowser>
+                    </div>
+                    <div style="width: 20%;display: inline;float: left;">
+                        <el-button type="primary" size="small" @click="beforeUpload" round><span
+                                class="glyphicon glyphicon-cloud-upload">上传</span></el-button>
+                        <imgbrowser></imgbrowser>
+                    </div>
+                    <div style="width: 20%;display: inline;float: left;">
+                        <el-button type="primary" size="small" @click="beforeUpload" round><span
+                                class="glyphicon glyphicon-cloud-upload">上传</span></el-button>
+                        <imgbrowser></imgbrowser>
+                    </div>
+                    <div style="width: 20%;display: inline;float: left;">
+                        <el-button type="primary" size="small" @click="beforeUpload" round><span
+                                class="glyphicon glyphicon-cloud-upload">上传</span></el-button>
+                        <imgbrowser></imgbrowser>
                     </div>
                 </div>
-
             </div>
-        </form>
 
-        <!-- Modal -->
-        <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+        </div>
+        <!--模态框 选择功能和银行版本-->
+        <div class="modal fade" id="selcontainer" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
             <div class="modal-dialog" role="document">
                 <div class="modal-content">
                     <div class="modal-header">
@@ -244,33 +238,36 @@
                         <h4 class="modal-title" id="myModalLabel">请选择</h4>
                     </div>
                     <div class="modal-body">
-                        <seltarget @changevalue="chg"></seltarget>
+                        <selfunc @change="selchange"></selfunc>
+                        <imguploader :data="selvalue" :index="whichtoupload" ref="myuploader"></imguploader>
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
+                        <button type="button" class="btn btn-primary" data-dismiss="modal" @click="upload">上传</button>
                     </div>
                 </div>
             </div>
         </div>
+    </div>
 
-        <div class="modal fade" id="selimg" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
-            <div class="modal-dialog" role="document">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
-                                aria-hidden="true">&times;</span></button>
-                        <h4 class="modal-title" id="myModalLabel">请选择</h4>
-                    </div>
-                    <div class="modal-body">
-                        <seltarget @changevalue="chg"></seltarget>
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
-                    </div>
+    <!-- Modal 选择指标-->
+    <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
+                            aria-hidden="true">&times;</span></button>
+                    <h4 class="modal-title" id="myModalLabel">请选择</h4>
+                </div>
+                <div class="modal-body">
+                    <seltarget @changevalue="chg"></seltarget>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
                 </div>
             </div>
         </div>
-
+    </div>
 
     </div>
 
@@ -283,12 +280,17 @@
         el: "#main",
         components: {
             "sidebar": httpVueLoader("/sidebar.vue"),
-            "seltarget": httpVueLoader("/seltarget.vue")
+            "seltarget": httpVueLoader("/seltarget.vue"),
+            "imguploader": httpVueLoader("/imguploader.vue"),
+            "imgbrowser": httpVueLoader("/imgbrowser.vue"),
+            "selfunc": httpVueLoader("/selfunc.vue"),
         },
         data: {
             info: {},
             task_name: null,
-            currentPage: 1
+            currentPage: 1,
+            whichtoupload: 0,
+            selvalue: {}
         },
         created: function () {
             this.user = window.location.pathname.split("/")[1];
@@ -311,17 +313,70 @@
             changepage: function (value) {
                 axios.get(`${this.task_name}?p=${value}`).then(res => {
                     this.info = res.data;
-                    currentPage = value;
+                    this.currentPage = value;
                 })
             },
             addtoend: function () {
-                console.log("新增到尾部");
                 this.$refs.mysidebar.addtoend();
             },
+            addtonext: function () {
+                this.$refs.mysidebar.addtonext();
+            },
             deletePage: function () {
+                this.$confirm('确定要删除吗', '提示', {
+                    confirmButtonText: '确定',
+                    cancelButtonText: '取消',
+                    type: 'warning'
+                }).then(() => {
+                    if (this.currentPage > 1) {
+                        axios.get(`${this.task_name}/deletepage?p=${this.currentPage}`).then(res => {
+                            this.$refs.mysidebar.get_pages();
+                            this.changepage(--this.currentPage);
+                            this.$refs.mysidebar.changeItemColor(this.currentPage);
+                            this.$message({
+                                type: 'success',
+                                message: '删除成功!',
+                                duration: 2000
+                            });
+                        });
+                    }
+                }).catch(() => {
+                    this.$message({
+                        type: 'info',
+                        message: '已取消删除'
+                    });
+                });
 
+            },
+            showlast: function () {
+                if (this.currentPage > 1) {
+                    this.changepage(--this.currentPage);
+                    this.$refs.mysidebar.changeItemColor(this.currentPage);
+                }
+            },
+            shownext: function () {
+                if (this.currentPage < this.$refs.mysidebar.data.length) {
+                    this.changepage(++this.currentPage);
+                    this.$refs.mysidebar.changeItemColor(this.currentPage);
+                }
+            },
+            beforeUpload: function (event) {
+                $("#selcontainer").modal();
+                if (event.target.tagName == 'SPAN') {
+                    this.whichtoupload = $(event.target).parents('button').index('.el-button--primary')
+                }
+                else {
+                    this.whichtoupload = $(event.target).index('.el-button--primary');
+                }
+            },
+            upload: function () {
+                this.$refs.myuploader.submitUpload();
+            },
+            selchange: function (value) {
+                this.selvalue.func = value[0];
+                this.selvalue.bank = value[1][0];
+                this.selvalue.ver = value[1][1];
             }
-
         }
     })
 

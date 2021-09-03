@@ -28,7 +28,7 @@
 					:class="{ selected: i == currentPage - 1 }"
 					@click="choosePage"
 				>
-					{{ item.title !== "" ? item.title : "未命名" }}
+					{{ item.title !== "" ? item.title : `第${i + 1}页 未命名` }}
 				</li>
 			</ul>
 		</el-drawer>
@@ -68,6 +68,21 @@ module.exports = {
 		addtoend() {
 			axios.get(`${this.task}/addtoend`).then((res) => {
 				this.get_pages();
+				this.$message({
+					type: "success",
+					message: "新增成功!",
+					duration: 2000,
+				});
+			});
+		},
+		addtonext() {
+			axios.get(`${this.task}/addtonext?p=${this.currentPage}`).then((res) => {
+				this.get_pages();
+				this.$message({
+					type: "success",
+					message: "新增成功!",
+					duration: 2000,
+				});
 			});
 		},
 		get_pages() {
@@ -84,6 +99,11 @@ module.exports = {
 		},
 		deletePage(num) {
 			axios.get(`${this.task}/deletepage?p=num`).then((res) => {});
+		},
+		changeItemColor(value) {
+			$(".selected").removeClass("selected");
+			$($("li")[value - 1]).addClass("selected");
+			this.currentPage = value;
 		},
 	},
 	created: function () {

@@ -13,6 +13,9 @@ import (
 	"strings"
 	"time"
 
+	"github.com/beego/beego/v2/client/orm"
+	_ "github.com/go-sql-driver/mysql"
+
 	"github.com/astaxie/beego"
 	"github.com/neo4j/neo4j-go-driver/v4/neo4j"
 )
@@ -70,7 +73,7 @@ type InfoController struct {
 type FuncController struct {
 	beego.Controller
 }
-type BVController struct {
+type MysqlController struct {
 	beego.Controller
 }
 
@@ -124,6 +127,21 @@ type Page struct {
 	Problem string `json:"problem"`
 	Pic     string `json:"pic"`
 	Advice  string `json:"advice"`
+}
+
+type Bank struct {
+	BankName string `json:"label"`
+	Value    string `json:"value"`
+	Vers     []Ver  `json:"children"`
+}
+
+type Ver struct {
+	Vername string `json:"label"`
+	Value   string `json:"value"`
+}
+
+func init() {
+	orm.RegisterDataBase("default", "mysql", "root:@tcp(127.0.0.1:3306)/versions?charset=utf8&loc=Local")
 }
 
 func (c *MainController) Get() {
@@ -711,8 +729,32 @@ func (c *PageController) Addtoend() {
 	c.Ctx.WriteString("1")
 }
 
-func (c *PageController) DeletePage(){
-	p:=c.GetString("p")
+func (c *PageController) Addtonext() {
+	user := c.Ctx.Input.Param(":user")
+	name := c.Ctx.Input.Param(":name")
+	p := c.GetString("p")
+	driver, err := neo4j.NewDriver(dbUri, neo4j.BasicAuth("neo4j", "980115", ""))
+	if err != nil {
+		panic(err)
+	}
+	defer driver.Close()
+	session := driver.NewSession(neo4j.SessionConfig{})
+	defer session.Close()
+	pint, _ := strconv.Atoi(p)
+	_, _ = session.WriteTransaction(func(tx neo4j.Transaction) (interface{}, error) {
+		_, err := tx.Run("match (u:User{username:$user})-[r:Control]->(t:Task{name:$name}), (t)-[i:Include]->(p:Page) where p.order>$order set p.order=p.order+1", map[string]interface{}{"name": name, "user": user, "order": pint})
+		if err != nil {
+			panic(err)
+		}
+		_, _ = tx.Run("match (u:User{username:$user})-[r:Control]->(t:Task{name:$name}) set t.totalnum=t.totalnum+1", map[string]interface{}{"name": name, "user": user})
+		_, err = tx.Run("match (u:User{username:$user})-[r:Control]->(t:Task{name:$name}) create (t)-[i:Include]->(p:Page{title:'', order:$order})", map[string]interface{}{"user": user, "name": name, "order": pint + 1})
+		return nil, err
+	})
+	c.Ctx.WriteString("1")
+}
+
+func (c *PageController) DeletePage() {
+	p := c.GetString("p")
 	user := c.Ctx.Input.Param(":user")
 	name := c.Ctx.Input.Param(":name")
 	driver, err := neo4j.NewDriver(dbUri, neo4j.BasicAuth("neo4j", "980115", ""))
@@ -722,12 +764,48 @@ func (c *PageController) DeletePage(){
 	defer driver.Close()
 	session := driver.NewSession(neo4j.SessionConfig{})
 	defer session.Close()
+	pint, _ := strconv.Atoi(p)
 	_, _ = session.WriteTransaction(func(tx neo4j.Transaction) (interface{}, error) {
-		_, err := tx.Run("match (u:User{username:$user})-[r:Control]->(t:Task{name:$name}),(t)-[i:Include]->(p:Page{order:$order}) delete i,p", map[string]interface{}{"name": name, "user": user, "order":p})
-		if err != nil{
+		_, err := tx.Run("match (u:User{username:$user})-[r:Control]->(t:Task{name:$name}),(t)-[i:Include]->(p:Page{order:$order}) delete i,p", map[string]interface{}{"name": name, "user": user, "order": pint})
+		if err != nil {
 			panic(err)
 		}
-		_, err := tx.Run("match (u:User{username:$user})-[r:Control]->(t:Task{name:$name}),(t)-[i:Include]->(p:Page{order:$order}) where ", map[string]interface{}{"name": name, "user": user, "order":p})
+		_, err = tx.Run("match (u:User{username:$user})-[r:Control]->(t:Task{name:$name}),(t)-[i:Include]->(p:Page) where p.order>$p set p.order=p.order-1", map[string]interface{}{"name": name, "user": user, "p": pint})
+		if err != nil {
+			panic(err)
+		}
+		_, err = tx.Run("match (u:User{username:$user})-[r:Control]->(t:Task{name:$name}) set t.totalnum=t.totalnum-1", map[string]interface{}{"name": name, "user": user})
+		return nil, err
+	})
+	c.Ctx.WriteString("1")
+}
 
+func (c *MysqlController) Getbv() {
+	o := orm.NewOrm()
+	var lists []orm.ParamsList
+	var banks []Bank
+	_, err := o.Raw("select distinct bank_name from versions").ValuesList(&lists)
+	if err != nil {
+		panic(err)
+	}
+	for _, item := range lists {
+		var bank Bank
+		bank.BankName = item[0].(string)
+		bank.Value = item[0].(string)
+		var ls []orm.ParamsList
+		_, e := o.Raw("select ver from versions where bank_name=?", item[0].(string)).ValuesList(&ls)
+		if e != nil {
+			panic(e)
+		}
+		for _, value := range ls {
+			var ver Ver
+			ver.Vername = value[0].(string)
+			ver.Value = value[0].(string)
+			bank.Vers = append(bank.Vers, ver)
+		}
+		banks = append(banks, bank)
+	}
 
+	c.Data["json"] = banks
+	c.ServeJSON()
 }

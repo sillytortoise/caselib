@@ -20,7 +20,6 @@ func init() {
 	beego.Router("/*.js", &controllers.JsController{})
 	beego.Router("/info", &controllers.InfoController{})
 	beego.Router("/getfunc", &controllers.FuncController{})
-	beego.Router("/getbv", &controllers.BVController{})
 	beego.Router("/*.png", &controllers.ImageController{})
 	beego.Router("/createtask", &controllers.TaskController{})
 	beego.Router("/gettasks", &controllers.TaskController{})
@@ -29,6 +28,8 @@ func init() {
 	beego.Router("/:user/:name", &controllers.PageController{})
 	beego.Router("/:user/:name/get_pages", &controllers.PageController{}, "get:Get_pages")
 	beego.Router("/:user/:name/addtoend", &controllers.PageController{}, "get:Addtoend")
+	beego.Router("/:user/:name/addtonext", &controllers.PageController{}, "get:Addtonext")
 	beego.Router("/:user/:name/deletepage", &controllers.PageController{}, "get:DeletePage")
+	beego.Router("/getbv", &controllers.MysqlController{},"get:Getbv")
 
 }
