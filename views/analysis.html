@@ -113,6 +113,11 @@
         td input:focus {
             outline: none;
         }
+
+        .el-upload {
+            margin: 0 auto;
+            margin-top: 10px;
+        }
     </style>
 </head>
 
@@ -121,7 +126,7 @@
 
         <div class="page-header">
             <sidebar @changepage="changepage" ref="mysidebar"></sidebar>
-            <input name="title" placeholder="请输入标题" />
+            <input name="title" placeholder="请输入标题" @change="autosave" />
 
             <span style="float: right; margin-right:5%">
                 <button class="btn btn-danger" type="button" @click="deletePage"><span
@@ -159,9 +164,9 @@
                         </tr>
                         <tr style="height:50%;background-color:rgb(193, 216, 235)">
                             <th>问题</th>
-                            <td colspan="2"><input name="problem" placeholder="输入问题" /></td>
+                            <td colspan="2"><input name="problem" placeholder="输入问题" @change="autosave" /></td>
                             <th>建议</th>
-                            <td colspan="2"><input name="advice" placeholder="输入建议" /></td>
+                            <td colspan="2"><input name="advice" placeholder="输入建议" @change="autosave" /></td>
                         </tr>
 
                     </tbody>
@@ -173,7 +178,7 @@
                         <tr>
                             <th
                                 style="border: solid 1px white;width: 20%;background-color: rgb(204, 102, 0);color: white;">
-                                <input name="imgname" placeholder="输入名称" />
+                                <input name="imgname" placeholder="输入名称" @change="autosave" />
                             </th>
                             <th
                                 style="border: solid 1px white;width: 20%;background-color: rgb(14, 108, 141);color: white;">
@@ -191,11 +196,8 @@
                     </thead>
                     <tbody>
                         <tr>
-                            <td style="border: solid 1px white;"><img /></td>
-                            <td style="border: solid 1px white;"><img id="img2" /></td>
-                            <td style="border: solid 1px white;"><img id="img3" /></td>
-                            <td style="border: solid 1px white;"><img id="img4" /></td>
-                            <td style="border: solid 1px white;"><img id="img5" /></td>
+                            <td style="border: solid 1px white;" v-for="(item,i) in info.pics"><img :id="'img'+i"
+                                    onerror="this.style.display='none'" :src="item" /></td>
                         </tr>
                     </tbody>
                 </table>
@@ -239,7 +241,8 @@
                     </div>
                     <div class="modal-body">
                         <selfunc @change="selchange"></selfunc>
-                        <imguploader :data="selvalue" :index="whichtoupload" ref="myuploader"></imguploader>
+                        <imguploader :index="whichtoupload" :selvalue="selvalue" :page="currentPage" ref="myuploader">
+                        </imguploader>
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
@@ -276,7 +279,7 @@
 
 <script>
 
-    new Vue({
+    var app = new Vue({
         el: "#main",
         components: {
             "sidebar": httpVueLoader("/sidebar.vue"),
@@ -303,9 +306,6 @@
                     this.info = res.data;
                     $("#myModal").modal('hide');
                 });
-            },
-            upload: function (event) {
-                console.log($(event.target).children()[0]);
             },
             selimg: function () {
                 $('#selimg').modal();
@@ -376,6 +376,25 @@
                 this.selvalue.func = value[0];
                 this.selvalue.bank = value[1][0];
                 this.selvalue.ver = value[1][1];
+            },
+            autosave: function () {
+                $.ajax({
+                    type: 'POST',
+                    url: `${window.location.pathname.split("/")[2]}/autosave?p=${app.currentPage}`,
+                    data: {
+                        title: $("input[name='title']").val(),
+                        problem: $("input[name='problem']").val(),
+                        advice: $("input[name='advice']").val(),
+                        imgname: $("input[name='imgname']").val()
+                    },
+                    success: function () {
+                        app.$message({
+                            type: 'success',
+                            message: '自动保存',
+                            duration: 2000
+                        })
+                    }
+                });
             }
         }
     })

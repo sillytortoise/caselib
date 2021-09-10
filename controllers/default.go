@@ -184,6 +184,10 @@ func (c *LoginController) Post() {
 			if remember == "true" {
 				c.Ctx.SetCookie("username", username, time.Hour*24*10)
 				c.Ctx.SetCookie("password", password, time.Hour*24*10)
+			} else {
+				c.Ctx.SetCookie("username", username, time.Second*3600*24)
+				c.Ctx.SetCookie("password", password, time.Second*3600*24)
+
 			}
 			return "1", err
 		} else { //验证不通过
@@ -345,7 +349,7 @@ func (c *PicsController) Post() {
 	ext := path.Ext(h.Filename)
 
 	//创建目录
-	uploadDir := "static/upload/" + time.Now().Format("2006/01/02/")
+	uploadDir := "static/upload/" //+ time.Now().Format("2006/01/02/")
 	err := os.MkdirAll(uploadDir, 777)
 	if err != nil {
 		c.Ctx.WriteString(fmt.Sprintf("%v", err))
@@ -793,7 +797,7 @@ func (c *MysqlController) Getbv() {
 		bank.BankName = item[0].(string)
 		bank.Value = item[0].(string)
 		var ls []orm.ParamsList
-		_, e := o.Raw("select ver from versions where bank_name=?", item[0].(string)).ValuesList(&ls)
+		_, e := o.Raw("select distinct ver from versions where bank_name=?", item[0].(string)).ValuesList(&ls)
 		if e != nil {
 			panic(e)
 		}
@@ -808,4 +812,95 @@ func (c *MysqlController) Getbv() {
 
 	c.Data["json"] = banks
 	c.ServeJSON()
+}
+
+func (c *PageController) Upload_pic() {
+	f, h, _ := c.GetFile("file") //获取上传的文件
+	ext := path.Ext(h.Filename)
+
+	//创建目录
+	uploadDir := "static/upload/" // + time.Now().Format("2006/01/02/")
+	err := os.MkdirAll(uploadDir, 777)
+	if err != nil {
+		c.Ctx.WriteString(fmt.Sprintf("%v", err))
+		return
+	}
+	//构造文件名称
+	rand.Seed(time.Now().UnixNano())
+	randNum := fmt.Sprintf("%d", rand.Intn(9999)+1000)
+	hashName := md5.Sum([]byte(time.Now().Format("2006_01_02_15_04_05_") + randNum))
+
+	fileName := fmt.Sprintf("%x", hashName) + ext
+	//c.Ctx.WriteString(  fileName )
+
+	fpath := uploadDir + fileName
+	defer f.Close() //关闭上传的文件，不然的话会出现临时文件不能清除的情况
+	err = c.SaveToFile("file", fpath)
+	if err != nil {
+		c.Ctx.WriteString(fmt.Sprintf("%v", err))
+	}
+
+	page := c.GetString("page")
+	p := c.GetString("p")
+	user := c.Ctx.Input.Param(":user")
+	task := c.Ctx.Input.Param(":task")
+	fun := c.GetString("func")
+	bank := c.GetString("bank")
+	ver := c.GetString("ver")
+
+	driver, err := neo4j.NewDriver(dbUri, neo4j.BasicAuth("neo4j", "980115", ""))
+	if err != nil {
+		panic(err)
+	}
+	defer driver.Close()
+	session := driver.NewSession(neo4j.SessionConfig{})
+	defer session.Close()
+
+	pint, _ := strconv.Atoi(page)
+	rank, _ := strconv.Atoi(p)
+
+	_, _ = session.WriteTransaction(func(tx neo4j.Transaction) (interface{}, error) {
+		_, err := tx.Run("match (u:User{username:$user})-[r:Control]->(t:Task{name:$name}),(t)-[i:Include]->(p:Page{order:$order}) create (p)-[c:Contains]->(pic:Pic{path:$path,order:$rank,bank:$bank,ver:$ver})", map[string]interface{}{"user": user, "name": task, "order": pint, "path": fileName, "rank": rank, "bank": bank, "ver": ver})
+		if err != nil {
+			panic(err)
+		}
+		_, err = tx.Run("match (f:Func{name:$name}),(p:Pic{path:$path,order:$rank,bank:$bank,ver:$ver}) create (p)-[i:Inplements]->(f)", map[string]interface{}{"name": fun, "path": fileName, "rank": rank, "bank": bank, "ver": ver})
+		if err != nil {
+			panic(err)
+		}
+		return nil, nil
+	})
+	c.Ctx.WriteString("success")
+}
+
+func (c *PageController) Autosave() {
+	user := c.Ctx.Input.Param(":user")
+	task := c.Ctx.Input.Param(":task")
+	page := c.GetString("p")
+	title := c.GetString("title")
+	problem := c.GetString("problem")
+	advice := c.GetString("advice")
+	imgname := c.GetString("imgname")
+
+	driver, err := neo4j.NewDriver(dbUri, neo4j.BasicAuth("neo4j", "980115", ""))
+	if err != nil {
+		panic(err)
+	}
+	defer driver.Close()
+	session := driver.NewSession(neo4j.SessionConfig{})
+	defer session.Close()
+
+	pint, _ := strconv.Atoi(page)
+
+	_, _ = session.WriteTransaction(func(tx neo4j.Transaction) (interface{}, error) {
+		_, err := tx.Run(`match (u:User{username:$user})-[r:Control]->(t:Task{name:$name}),
+		(t)-[i:Include]->(p:Page{order:$order}) 
+		set p.title=$title,p.problem=$problem,p.advice=$advice,p.imgname=$imgname`,
+			map[string]interface{}{"user": user, "name": task, "order": pint, "title": title, "problem": problem, "advice": advice, "imgname": imgname})
+		if err != nil {
+			panic(err)
+		}
+		return nil, nil
+	})
+	c.Ctx.WriteString("success")
 }

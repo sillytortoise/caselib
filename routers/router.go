@@ -30,6 +30,8 @@ func init() {
 	beego.Router("/:user/:name/addtoend", &controllers.PageController{}, "get:Addtoend")
 	beego.Router("/:user/:name/addtonext", &controllers.PageController{}, "get:Addtonext")
 	beego.Router("/:user/:name/deletepage", &controllers.PageController{}, "get:DeletePage")
-	beego.Router("/getbv", &controllers.MysqlController{},"get:Getbv")
+	beego.Router("/getbv", &controllers.MysqlController{}, "get:Getbv")
+	beego.Router("/:user/:task/pic", &controllers.PageController{}, "post:Upload_pic")
+	beego.Router("/:user/:task/autosave", &controllers.PageController{}, "post:Autosave")
 
 }

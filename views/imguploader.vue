@@ -2,9 +2,10 @@
 	<el-upload
 		class="upload-demo"
 		ref="upload"
-		:action="`${task}/pic?p=${index}`"
+		:action="`${task}/pic?page=${page}&p=${index}`"
 		:file-list="fileList"
-		:show-file-list="false"
+		list-type="picture"
+		:on-change="handleChange"
 		accept=".jpg,.jpeg,.png"
 		:auto-upload="false"
 		:data="selvalue"
@@ -21,7 +22,7 @@ module.exports = {
 			task: window.location.pathname.split("/")[2],
 		};
 	},
-	props: ["index", "selvalue"],
+	props: ["index", "selvalue", "page"],
 	components: {
 		selfunc: httpVueLoader("/selfunc.vue"),
 	},
@@ -31,6 +32,9 @@ module.exports = {
 		},
 		handleRemove(file, fileList) {
 			console.log(file, fileList);
+		},
+		handleChange(file, fileList) {
+			this.fileList = fileList.slice(-1);
 		},
 	},
 };

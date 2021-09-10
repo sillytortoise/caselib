@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <title></title>
+    <script src="jquery-3.2.1.min.js"></script>
+    <script type="text/javascript" src="jquery.media.js"></script>
+</head>
+
+<body>
+
+
+
+    //在线预览PDF
+    <div id="handout_wrap_inner"></div>
+
+    //在线预览PPT
+    <iframe src='https://view.officeapps.live.com/op/view.aspx?src=C:\\Users\\steve\\Desktop\\特色化案例库特色化案例库-0802.pptx'
+        width='100%' height='600px' frameborder='1'>
+    </iframe>
+
+</body>
+<script>
+    $('#handout_wrap_inner').media({
+        width: '100%',
+        height: '500px',
+        autoplay: true,
+        src: 'http://storage.xuetangx.com/public_assets/xuetangx/PDF/PlayerAPI_v1.0.6.pdf',
+    });
+</script>
+
+</html>
