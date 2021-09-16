@@ -50,9 +50,5 @@ module.exports = {
 input[type="file"] {
 	display: none;
 }
-
-#myModal {
-	height: 300px;
-}
 </style>
 

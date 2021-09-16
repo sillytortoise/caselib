@@ -659,7 +659,8 @@ func (c *PageController) Get() {
 	session := driver.NewSession(neo4j.SessionConfig{})
 	defer session.Close()
 	result, _ := session.ReadTransaction(func(tx neo4j.Transaction) (interface{}, error) {
-		r, err := tx.Run("match (u:User{username:$user})-[r:Control]->(t:Task{name:$name}),(t)-[i:include]->(p:Page{order:$order}) return p.title as title, p.target as target, p.problem as problem, p.pic as pic, p.advice as advice", map[string]interface{}{"user": user, "name": name, "order": page})
+		p, _ := strconv.Atoi(page)
+		r, err := tx.Run("match (u:User{username:$user})-[r:Control]->(t:Task{name:$name}),(t)-[i:Include]->(p:Page{order:$order}) return p.title as title, p.targetid as target, p.problem as problem, p.advice as advice", map[string]interface{}{"user": user, "name": name, "order": p})
 		if err != nil {
 			panic(err)
 		}
@@ -669,14 +670,13 @@ func (c *PageController) Get() {
 			title, _ := record.Get("title")
 			target, _ := record.Get("target")
 			problem, _ := record.Get("problem")
-			pic, _ := record.Get("pic")
 			advice, _ := record.Get("advice")
 			obj.Title, _ = title.(string)
 			obj.Target, _ = target.(string)
 			obj.Problem, _ = problem.(string)
-			obj.Pic, _ = pic.(string)
 			obj.Advice, _ = advice.(string)
 		}
+		fmt.Println(obj)
 		return obj, nil
 	})
 	c.Data["json"] = result
@@ -860,7 +860,19 @@ func (c *PageController) Upload_pic() {
 	rank, _ := strconv.Atoi(p)
 
 	_, _ = session.WriteTransaction(func(tx neo4j.Transaction) (interface{}, error) {
-		_, err := tx.Run("match (u:User{username:$user})-[r:Control]->(t:Task{name:$name}),(t)-[i:Include]->(p:Page{order:$order}) create (p)-[c:Contains]->(pic:Pic{path:$path,order:$rank,bank:$bank,ver:$ver})", map[string]interface{}{"user": user, "name": task, "order": pint, "path": fileName, "rank": rank, "bank": bank, "ver": ver})
+		fmt.Println(user, task, pint, rank)
+		r, err := tx.Run("match (u:User{username:$user})-[r:Control]->(t:Task{name:$name}),(t)-[i:Include]->(p:Page{order:$order}),(p)-[c:Contains]->(pic:Pic{order:$rank}) return pic as pi", map[string]interface{}{"user": user, "name": task, "order": pint, "rank": rank})
+		if err != nil {
+			panic(err)
+		}
+		if r.Next() {
+			fmt.Println("已经有了")
+			_, err = tx.Run("match (u:User{username:$user})-[r:Control]->(t:Task{name:$name}),(t)-[i:Include]->(p:Page{order:$order}),(p)-[c:Contains]->(pic:Pic{order:$rank}) delete c", map[string]interface{}{"user": user, "name": task, "order": pint, "rank": rank})
+			if err != nil {
+				panic(err)
+			}
+		}
+		_, err = tx.Run("match (u:User{username:$user})-[r:Control]->(t:Task{name:$name}),(t)-[i:Include]->(p:Page{order:$order}) create (p)-[c:Contains]->(pic:Pic{path:$path,order:$rank,bank:$bank,ver:$ver})", map[string]interface{}{"user": user, "name": task, "order": pint, "path": fileName, "rank": rank, "bank": bank, "ver": ver})
 		if err != nil {
 			panic(err)
 		}
@@ -881,6 +893,7 @@ func (c *PageController) Autosave() {
 	problem := c.GetString("problem")
 	advice := c.GetString("advice")
 	imgname := c.GetString("imgname")
+	targetid := c.GetString("targetid")
 
 	driver, err := neo4j.NewDriver(dbUri, neo4j.BasicAuth("neo4j", "980115", ""))
 	if err != nil {
@@ -895,8 +908,8 @@ func (c *PageController) Autosave() {
 	_, _ = session.WriteTransaction(func(tx neo4j.Transaction) (interface{}, error) {
 		_, err := tx.Run(`match (u:User{username:$user})-[r:Control]->(t:Task{name:$name}),
 		(t)-[i:Include]->(p:Page{order:$order}) 
-		set p.title=$title,p.problem=$problem,p.advice=$advice,p.imgname=$imgname`,
-			map[string]interface{}{"user": user, "name": task, "order": pint, "title": title, "problem": problem, "advice": advice, "imgname": imgname})
+		set p.title=$title,p.problem=$problem,p.advice=$advice,p.imgname=$imgname,p.targetid=$targetid`,
+			map[string]interface{}{"user": user, "name": task, "order": pint, "title": title, "problem": problem, "advice": advice, "imgname": imgname, "targetid": targetid})
 		if err != nil {
 			panic(err)
 		}

@@ -118,6 +118,10 @@
             margin: 0 auto;
             margin-top: 10px;
         }
+
+        #myModal {
+            height: 300px;
+        }
     </style>
 </head>
 
@@ -164,9 +168,11 @@
                         </tr>
                         <tr style="height:50%;background-color:rgb(193, 216, 235)">
                             <th>问题</th>
-                            <td colspan="2"><input name="problem" placeholder="输入问题" @change="autosave" /></td>
+                            <td colspan="2"><input name="problem" placeholder="输入问题" @change="autosave"
+                                    :value="info.problem" style="width:100%" /></td>
                             <th>建议</th>
-                            <td colspan="2"><input name="advice" placeholder="输入建议" @change="autosave" /></td>
+                            <td colspan="2"><input name="advice" placeholder="输入建议" @change="autosave"
+                                    :value="info.advice" style="width:100%" /></td>
                         </tr>
 
                     </tbody>
@@ -178,7 +184,7 @@
                         <tr>
                             <th
                                 style="border: solid 1px white;width: 20%;background-color: rgb(204, 102, 0);color: white;">
-                                <input name="imgname" placeholder="输入名称" @change="autosave" />
+                                <input name="imgname" placeholder="输入名称" @change="autosave" style="width:100%" />
                             </th>
                             <th
                                 style="border: solid 1px white;width: 20%;background-color: rgb(14, 108, 141);color: white;">
@@ -231,13 +237,13 @@
 
         </div>
         <!--模态框 选择功能和银行版本-->
-        <div class="modal fade" id="selcontainer" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+        <div class="modal fade" id="selcontainer" tabindex="-1" role="dialog" aria-labelledby="myModalLabel1">
             <div class="modal-dialog" role="document">
                 <div class="modal-content">
                     <div class="modal-header">
                         <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
                                 aria-hidden="true">&times;</span></button>
-                        <h4 class="modal-title" id="myModalLabel">请选择</h4>
+                        <h4 class="modal-title" id="myModalLabel1">请选择</h4>
                     </div>
                     <div class="modal-body">
                         <selfunc @change="selchange"></selfunc>
@@ -251,26 +257,29 @@
                 </div>
             </div>
         </div>
-    </div>
 
-    <!-- Modal 选择指标-->
-    <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
-        <div class="modal-dialog" role="document">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
-                            aria-hidden="true">&times;</span></button>
-                    <h4 class="modal-title" id="myModalLabel">请选择</h4>
-                </div>
-                <div class="modal-body">
-                    <seltarget @changevalue="chg"></seltarget>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
+        <!-- Modal 选择指标-->
+        <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
+                                aria-hidden="true">&times;</span></button>
+                        <h4 class="modal-title" id="myModalLabel">请选择</h4>
+                    </div>
+                    <div class="modal-body">
+                        <seltarget @changevalue="chg"></seltarget>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
+                    </div>
                 </div>
             </div>
         </div>
+
     </div>
+
+
 
     </div>
 
@@ -293,7 +302,8 @@
             task_name: null,
             currentPage: 1,
             whichtoupload: 0,
-            selvalue: {}
+            selvalue: {},
+            targetid: ""
         },
         created: function () {
             this.user = window.location.pathname.split("/")[1];
@@ -302,9 +312,16 @@
         },
         methods: {
             chg: function (value) {
+                this.targetid = value[1];
                 axios.get(`/info?id=${value[1]}`).then((res) => {
-                    this.info = res.data;
+                    console.log(res.data);
+                    console.log(this.info.target);
+                    this.$set(this.info, 'target', res.data.target);
+                    this.$set(this.info, 'p', res.data.p);
+                    this.$set(this.info, 't', res.data.t);
+
                     $("#myModal").modal('hide');
+                    this.autosave();
                 });
             },
             selimg: function () {
@@ -312,8 +329,24 @@
             },
             changepage: function (value) {
                 axios.get(`${this.task_name}?p=${value}`).then(res => {
-                    this.info = res.data;
-                    this.currentPage = value;
+                    let obj = new Object();
+                    obj.title = res.data.title;
+                    obj.target = res.data.target;
+                    obj.problem = res.data.problem;
+                    obj.advice = res.data.advice;
+                    obj.p = "";
+                    obj.t = "";
+                    this.targetid = res.data.target;
+                    if (res.data.target == undefined) {
+                        return;
+                    }
+                    axios.get(`/info?id=${res.data.target}`).then((r) => {
+                        obj.target = r.data.target;
+                        obj.p = r.data.p;
+                        obj.t = r.data.t;
+                        this.info = obj;
+                        this.currentPage = value;
+                    });
                 })
             },
             addtoend: function () {
@@ -382,6 +415,7 @@
                     type: 'POST',
                     url: `${window.location.pathname.split("/")[2]}/autosave?p=${app.currentPage}`,
                     data: {
+                        targetid: this.targetid,
                         title: $("input[name='title']").val(),
                         problem: $("input[name='problem']").val(),
                         advice: $("input[name='advice']").val(),
@@ -395,6 +429,9 @@
                         })
                     }
                 });
+            },
+            getpics: function () {
+
             }
         }
     })

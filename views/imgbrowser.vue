@@ -5,10 +5,10 @@
 		>
 		<div
 			class="modal fade"
-			id="myModal"
+			id="myModalimgb"
 			tabindex="-1"
 			role="dialog"
-			aria-labelledby="myModalLabel"
+			aria-labelledby="myModalimgbLabel"
 			aria-hidden="true"
 		>
 			<div class="modal-dialog">
@@ -22,7 +22,7 @@
 						>
 							&times;
 						</button>
-						<h4 class="modal-title" id="myModalLabel">选择</h4>
+						<h4 class="modal-title" id="myModalimgbLabel">选择</h4>
 					</div>
 					<div class="modal-body">
 						<selfunc></selfunc>
