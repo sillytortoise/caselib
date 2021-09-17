@@ -202,8 +202,21 @@
                     </thead>
                     <tbody>
                         <tr>
-                            <td style="border: solid 1px white;" v-for="(item,i) in info.pics"><img :id="'img'+i"
-                                    onerror="this.style.display='none'" :src="item" /></td>
+                            <td style="border: solid 1px white;"><img id="img0"
+                                    :src="'/'+(info.pics.length>0?info.pics[0].path:'')" />
+                            </td>
+                            <td style="border: solid 1px white;"><img id="img1"
+                                    :src="'/'+(info.pics.length>1?info.pics[1].path:'')" />
+                            </td>
+                            <td style="border: solid 1px white;"><img id="img2"
+                                    :src="'/'+(info.pics.length>2?info.pics[2].path:'')" />
+                            </td>
+                            <td style="border: solid 1px white;"><img id="img3"
+                                    :src="'/'+(info.pics.length>3?info.pics[3].path:'')" />
+                            </td>
+                            <td style="border: solid 1px white;"><img id="img4"
+                                    :src="'/'+(info.pics.length>4?info.pics[4].path:'')" />
+                            </td>
                         </tr>
                     </tbody>
                 </table>
@@ -298,7 +311,9 @@
             "selfunc": httpVueLoader("/selfunc.vue"),
         },
         data: {
-            info: {},
+            info: {
+                pics: [{ order: 0, path: "" }, { order: 1, path: "" }, { order: 2, path: "" }, { order: 3, path: "" }, { order: 4, path: "" }]
+            },
             task_name: null,
             currentPage: 1,
             whichtoupload: 0,
@@ -319,7 +334,8 @@
                     this.$set(this.info, 'target', res.data.target);
                     this.$set(this.info, 'p', res.data.p);
                     this.$set(this.info, 't', res.data.t);
-
+                    this.$set(this.info, "pics", res.data.pics)
+                    console.log(this.info);
                     $("#myModal").modal('hide');
                     this.autosave();
                 });
@@ -334,6 +350,10 @@
                     obj.target = res.data.target;
                     obj.problem = res.data.problem;
                     obj.advice = res.data.advice;
+                    obj.pics = res.data.pics;
+                    if (obj.pics == undefined) {
+                        obj.pics = [{ order: 0, path: "" }, { order: 1, path: "" }, { order: 2, path: "" }, { order: 3, path: "" }, { order: 4, path: "" }];
+                    }
                     obj.p = "";
                     obj.t = "";
                     this.targetid = res.data.target;
@@ -404,6 +424,9 @@
             },
             upload: function () {
                 this.$refs.myuploader.submitUpload();
+                console.log(this.whichtoupload);
+                console.log(this.selvalue);
+
             },
             selchange: function (value) {
                 this.selvalue.func = value[0];

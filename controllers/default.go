@@ -127,6 +127,7 @@ type Page struct {
 	Problem string `json:"problem"`
 	Pic     string `json:"pic"`
 	Advice  string `json:"advice"`
+	Pics    []Pic  `json:"pics"`
 }
 
 type Bank struct {
@@ -138,6 +139,11 @@ type Bank struct {
 type Ver struct {
 	Vername string `json:"label"`
 	Value   string `json:"value"`
+}
+
+type Pic struct {
+	Order int64  `json:"order"`
+	Path  string `json:"path"`
 }
 
 func init() {
@@ -423,7 +429,7 @@ func (c *ImageController) Get() {
 		c.TplName = "signin.html"
 	}
 	uri := c.Ctx.Request.RequestURI
-	b, err := ioutil.ReadFile("./static/img" + uri) // just pass the file name
+	b, err := ioutil.ReadFile("./static/upload" + uri) // just pass the file name
 	if err != nil {
 		fmt.Print(err)
 	}
@@ -660,7 +666,7 @@ func (c *PageController) Get() {
 	defer session.Close()
 	result, _ := session.ReadTransaction(func(tx neo4j.Transaction) (interface{}, error) {
 		p, _ := strconv.Atoi(page)
-		r, err := tx.Run("match (u:User{username:$user})-[r:Control]->(t:Task{name:$name}),(t)-[i:Include]->(p:Page{order:$order}) return p.title as title, p.targetid as target, p.problem as problem, p.advice as advice", map[string]interface{}{"user": user, "name": name, "order": p})
+		r, err := tx.Run("match (u:User{username:$user})-[r:Control]->(t:Task{name:$name}),(t)-[i:Include]->(p:Page{order:$order}),(p)-[c:Contains]->(pic:Pic) return p.title as title, p.targetid as target, p.problem as problem, p.advice as advice,pic.path as path", map[string]interface{}{"user": user, "name": name, "order": p})
 		if err != nil {
 			panic(err)
 		}
@@ -676,7 +682,21 @@ func (c *PageController) Get() {
 			obj.Problem, _ = problem.(string)
 			obj.Advice, _ = advice.(string)
 		}
-		fmt.Println(obj)
+		r, err = tx.Run(`match (u:User{username:$user})-[r:Control]->(t:Task{name:$name}),
+		(t)-[i:Include]->(p:Page{order:$order}),
+		(p)-[c:Contains]->(pic:Pic) 
+		return pic.order as order,pic.path as path order by pic.order`, map[string]interface{}{"user": user, "name": name, "order": p})
+		if err != nil {
+			panic(err)
+		}
+		for r.Next() {
+			record := r.Record()
+			order, _ := record.Get("order")
+			path, _ := record.Get("path")
+			orderint, _ := order.(int64)
+			pathstr, _ := path.(string)
+			obj.Pics = append(obj.Pics, Pic{orderint, pathstr})
+		}
 		return obj, nil
 	})
 	c.Data["json"] = result
