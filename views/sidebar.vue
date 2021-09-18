@@ -51,19 +51,25 @@ module.exports = {
 		handleClose(done) {
 			let height = $(".panel-default").css("height").slice(0, -2);
 			let width = $(".panel-default").css("width").slice(0, -2);
+			let max_height = $("img").css("max-height").slice(0, -2);
 			width *= 1.25;
 			height *= 1.25;
+			max_height *= 1.25;
 			$(".panel-default").css("height", height.toFixed(2) + "px");
 			$(".panel-default").css("width", width.toFixed(2) + "px");
+			$("img").css("max-height", width.toFixed(2) + "px");
 			done();
 		},
 		handleOpen() {
 			let height = $(".panel-default").css("height").slice(0, -2);
 			let width = $(".panel-default").css("width").slice(0, -2);
+			let max_height = $("img").css("max-height").slice(0, -2);
 			width *= 0.8;
 			height *= 0.8;
+			max_height *= 0.8;
 			$(".panel-default").css("height", height.toFixed(2) + "px");
 			$(".panel-default").css("width", width.toFixed(2) + "px");
+			$("img").css("max-height", max_height.toFixed(2) + "px");
 		},
 		addtoend() {
 			axios.get(`${this.task}/addtoend`).then((res) => {

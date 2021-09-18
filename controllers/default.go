@@ -649,7 +649,7 @@ func (c *TaskController) Delete() {
 	c.Ctx.WriteString("1")
 }
 
-func (c *PageController) Get() {
+func (c *PageController) Get() { //changePage ?p=
 	page := c.GetString("p")
 	if page == "" {
 		c.TplName = "analysis.html"
@@ -666,7 +666,7 @@ func (c *PageController) Get() {
 	defer session.Close()
 	result, _ := session.ReadTransaction(func(tx neo4j.Transaction) (interface{}, error) {
 		p, _ := strconv.Atoi(page)
-		r, err := tx.Run("match (u:User{username:$user})-[r:Control]->(t:Task{name:$name}),(t)-[i:Include]->(p:Page{order:$order}),(p)-[c:Contains]->(pic:Pic) return p.title as title, p.targetid as target, p.problem as problem, p.advice as advice,pic.path as path", map[string]interface{}{"user": user, "name": name, "order": p})
+		r, err := tx.Run("match (u:User{username:$user})-[r:Control]->(t:Task{name:$name}),(t)-[i:Include]->(p:Page{order:$order}) return p.title as title, p.targetid as target, p.problem as problem, p.advice as advice", map[string]interface{}{"user": user, "name": name, "order": p})
 		if err != nil {
 			panic(err)
 		}
@@ -743,6 +743,7 @@ func (c *PageController) Addtoend() {
 	defer driver.Close()
 	session := driver.NewSession(neo4j.SessionConfig{})
 	defer session.Close()
+	fmt.Println(user, name)
 	_, _ = session.WriteTransaction(func(tx neo4j.Transaction) (interface{}, error) {
 		_, err := tx.Run("match (u:User{username:$user})-[r:Control]->(t:Task{name:$name}) create (t)-[i:Include]->(p:Page{title:'',order:t.totalnum+1}) set t.totalnum=t.totalnum+1", map[string]interface{}{"name": name, "user": user})
 		if err != nil {
@@ -924,6 +925,9 @@ func (c *PageController) Autosave() {
 	defer session.Close()
 
 	pint, _ := strconv.Atoi(page)
+	fmt.Println(title)
+	fmt.Println(pint)
+	fmt.Println(page)
 
 	_, _ = session.WriteTransaction(func(tx neo4j.Transaction) (interface{}, error) {
 		_, err := tx.Run(`match (u:User{username:$user})-[r:Control]->(t:Task{name:$name}),
