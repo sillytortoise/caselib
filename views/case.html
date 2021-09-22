@@ -55,7 +55,7 @@
         }
 
         .panel-heading {
-            height: 25%;
+            height: 30%;
             padding: 3px;
         }
 
@@ -66,17 +66,15 @@
 
         .table-bordered>tbody>tr>th,
         .table-bordered>tbody>tr>td {
-            border: solid 1px rgb(102, 160, 207);
+            border: solid 1px rgb(93, 156, 213);
             vertical-align: middle;
-        }
-
-        .table-bordered>tbody>tr>th {
-            font-size: 17px;
+            background-color: rgb(189, 215, 238);
         }
 
         .table-bordered>tbody>tr>td {
-            font-size: 15px;
+            background-color: rgb(234, 239, 247);
         }
+
 
         img {
             width: 100%;
@@ -99,19 +97,34 @@
             outline: none;
         }
 
-        th input,
+        td input,
         td input {
             border: 0;
             font-size: 15px;
             background-color: transparent;
         }
 
-        th input:focus {
+        td input:focus {
             outline: none;
         }
 
         td input:focus {
             outline: none;
+        }
+
+        #pictb {
+            background-color: rgb(234, 239, 247);
+            border: solid 1px black;
+
+        }
+
+        #pictb>tbody>tr>th {
+            background-color: rgb(210, 222, 239);
+            border: solid 1px white;
+        }
+
+        #pictb>tbody>tr>td {
+            border: solid 1px white;
         }
 
         .el-upload {
@@ -121,6 +134,15 @@
 
         #myModal {
             height: 300px;
+        }
+
+        textarea {
+            border: none;
+            background-color: rgb(234, 239, 247);
+        }
+
+        textarea:focus {
+            outline: none;
         }
     </style>
 </head>
@@ -149,115 +171,69 @@
 
         <div class="panel panel-default">
             <div class="panel-heading">
-                <table id="mytable" class="table table-striped table-bordered" style="height: 100%;margin:0">
-                    <tbody>
-                        <tr style="height:12%;background-color:rgb(224, 236, 245)">
-                            <th style="width: 8%;">案例编号</th>
-                            <td style="width: 12.4%;"></td>
-                            <th rowspan="2" style="width: 8%;">产品名称</th>
-                            <td rowspan="2" style="width:13.5%"></td>
-                            <th style="width: 8%;">版本号</th>
-                            <td style="width:31.5%"></td>
-                            <th style="width: 8%;">记录日期</th>
-                            <td style="width: 10.6%;"></td>
-                        </tr>
-                        <tr style="height:12%;background-color:rgb(193, 216, 235)">
-                            <th style="width: 8%;">产品分类</th>
-                            <td style="width: 12.4%;"></td>
-                            <th style="width: 8%;">应用分类</th>
-                            <td style="width:31.5%"></td>
-                            <th style="width: 8%;">记录人</th>
-                            <td style="width: 10.6%;"></td>
-                        </tr>
-                        <tr style="height:12%;background-color:rgb(193, 216, 235)">
-                            <th style="width: 8%;">特色类型</th>
-                            <td style="width: 12.4%;"></td>
-                            <th rowspan="2" style="width: 8%;">特色摘要</th>
-                            <td style="width:31.5%"></td>
-                            <th rowspan="2" style="width: 8%;">应用思路</th>
-                            <td style="width:40%;"></td>
-                        </tr>
-                        <tr>
-                            <th style="width:8%;">案例页数</th>
-                            <td style="width: 12.4%;"></td>
-                        </tr>
-                        <tr>
-                            <th style="width:8%;height:28%">详细描述</th>
-                            <td style="width: 92%;height: 28%;"></td>
-                        </tr>
-                    </tbody>
+                <table id="mytable" class="table table-striped table-bordered"
+                    style="height: 100%;width: 100%;margin:0">
+                    <tr style="height:15.4%;width: 100%;">
+                        <!--1-->
+                        <th style="width: 8%;">案例编号</th>
+                        <td style="width: 12%;"><input placeholder="请输入" style="width: 100%;" /></td>
+                        <th rowspan="2" style="width: 8%;">产品名称</th>
+                        <td rowspan="2" style="width:12%"><input placeholder="请输入" style="width: 100%;" /></td>
+                        <th style="width: 8%;">版本号</th>
+                        <td colspan="3" style="width:32%"><input placeholder="请输入" style="width: 100%;" /></td>
+                        <th style="width: 8%;">记录日期</th>
+                        <td style="width: 12%;"><input placeholder="请输入" style="width: 100%;" /></td>
+                    </tr>
+
+                    <tr style="height:15.4%;width: 100%;">
+                        <th style="width: 8%;">产品分类</th>
+                        <td style="width: 12%;"><input placeholder="请输入" style="width: 100%;" /></td>
+                        <th style="width: 8%;">应用分类</th>
+                        <td colspan="3" style="width:32%"><input placeholder="请输入" style="width: 100%;" /></td>
+                        <th style="width: 8%;">记录人</th>
+                        <td style="width: 12%;"><input placeholder="请输入" style="width: 100%;" /></td>
+                    </tr>
+
+                    <tr style="height:15.4%;width: 100%;">
+                        <th style="width: 8%;">特色类型</th>
+                        <td style="width: 12%;"><input placeholder="请输入" style="width: 100%;" /></td>
+                        <th rowspan="2" style="width: 8%;">特色摘要</th>
+                        <td colspan="3" rowspan="2" style="width:32%"><input placeholder="请输入" style="width: 100%;" />
+                        </td>
+                        <th rowspan="2" style="width: 8%;">应用思路</th>
+                        <td colspan="3" rowspan="2" style="width:32%;"><input placeholder="请输入" style="width: 100%;" />
+                        </td>
+                    </tr>
+
+
+                    <tr style="height:15.4%;width: 100%;">
+                        <th style="width: 8%;">案例页数</th>
+                        <td style="width: 12%;"><input placeholder="请输入" style="width: 100%;" /></td>
+                    </tr>
+
+                    <tr style="height: 38.4%;width: 100%;">
+                        <th style="width:8%;">详细描述</th>
+                        <td colspan="9" style="width: 92%;"><input placeholder="请输入" style="width: 100%;" /></td>
+                    </tr>
                 </table>
             </div>
             <div class="panel-body">
-                <table style="height: 100%;width: 100%;">
-                    <thead style="height: 10%;">
-                        <tr>
-                            <th
-                                style="border: solid 1px white;width: 20%;background-color: rgb(204, 102, 0);color: white;">
-                                <input name="imgname" placeholder="输入名称" @change="autosave" style="width:100%" />
-                            </th>
-                            <th
-                                style="border: solid 1px white;width: 20%;background-color: rgb(14, 108, 141);color: white;">
-                                同业参考：</th>
-                            <th
-                                style="border: solid 1px white;width: 20%;background-color: rgb(14, 108, 141);color: white;">
-                                同业参考：</th>
-                            <th
-                                style="border: solid 1px white;width: 20%;background-color: rgb(14, 108, 141);color: white;">
-                                同业参考：</th>
-                            <th
-                                style="border: solid 1px white;width: 20%;background-color: rgb(14, 108, 141);color: white;">
-                                同业参考：</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td style="border: solid 1px white;"><img id="img0"
-                                    :src="'/'+(info.pics.length>0?info.pics[0].path:'')" />
-                            </td>
-                            <td style="border: solid 1px white;"><img id="img1"
-                                    :src="'/'+(info.pics.length>1?info.pics[1].path:'')" />
-                            </td>
-                            <td style="border: solid 1px white;"><img id="img2"
-                                    :src="'/'+(info.pics.length>2?info.pics[2].path:'')" />
-                            </td>
-                            <td style="border: solid 1px white;"><img id="img3"
-                                    :src="'/'+(info.pics.length>3?info.pics[3].path:'')" />
-                            </td>
-                            <td style="border: solid 1px white;"><img id="img4"
-                                    :src="'/'+(info.pics.length>4?info.pics[4].path:'')" />
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
-                <div id="imgsel" class="well well-lg" style="position: relative; top:20px;height:100px;padding: 10px;">
-                    <div style="width: 20%;height:150px;display: inline;float: left;">
-                        <el-button type="primary" size="small" @click="beforeUpload" round><span
-                                class="glyphicon glyphicon-cloud-upload">上传</span></el-button>
-                    </div>
-                    <div style="width: 20%;display: inline;float: left;">
-                        <el-button type="primary" size="small" @click="beforeUpload" round><span
-                                class="glyphicon glyphicon-cloud-upload">上传</span></el-button>
-                        <imgbrowser></imgbrowser>
-                    </div>
-                    <div style="width: 20%;display: inline;float: left;">
-                        <el-button type="primary" size="small" @click="beforeUpload" round><span
-                                class="glyphicon glyphicon-cloud-upload">上传</span></el-button>
-                        <imgbrowser></imgbrowser>
-                    </div>
-                    <div style="width: 20%;display: inline;float: left;">
-                        <el-button type="primary" size="small" @click="beforeUpload" round><span
-                                class="glyphicon glyphicon-cloud-upload">上传</span></el-button>
-                        <imgbrowser></imgbrowser>
-                    </div>
-                    <div style="width: 20%;display: inline;float: left;">
-                        <el-button type="primary" size="small" @click="beforeUpload" round><span
-                                class="glyphicon glyphicon-cloud-upload">上传</span></el-button>
-                        <imgbrowser></imgbrowser>
-                    </div>
-                </div>
-            </div>
+                <table id="pictb" style="width: 100%;height:100%">
+                    <tr style="height: 10.5%;">
+                        <th style="width: 25%;"></th>
+                        <th style="width: 25%;"></th>
+                        <th style="width: 25%;"></th>
+                        <th style="width: 25%;"></th>
+                    </tr>
+                    <tr style="height: 89%;">
+                        <td style="width: 25%;"></td>
+                        <td style="width: 25%;"></td>
+                        <td style="width: 25%;"></td>
+                        <td style="width: 25%;"></td>
 
+                    </tr>
+                </table>
+            </div>
         </div>
         <!--模态框 选择功能和银行版本-->
         <div class="modal fade" id="selcontainer" tabindex="-1" role="dialog" aria-labelledby="myModalLabel1">
@@ -304,13 +280,9 @@
 
 
 
-    </div>
-
-
 </body>
 
 <script>
-
     var app = new Vue({
         el: "#main",
         components: {
@@ -349,11 +321,7 @@
                     $("#myModal").modal('hide');
                     this.autosave();
                 });
-            },
-            selimg: function () {
-                $('#selimg').modal();
-            },
-            changepage: function (value) {
+            }, changepage: function (value) {
                 axios.get(`${this.task_name}?p=${value}`).then(res => {
                     let obj = new Object();
                     obj.title = res.data.title;
@@ -468,9 +436,9 @@
             getpics: function () {
 
             }
-        }
+        },
     })
-
 </script>
+
 
 </html>

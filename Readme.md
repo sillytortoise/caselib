@@ -2,7 +2,37 @@
 
 ## 1. 数据库实体
 
-![数据库对象设计](C:\Users\steve\Desktop\数据库对象设计.png)
+![数据库对象设计](C:\Users\steve\Desktop\特色化案例库\数据库对象设计.png)
+
+
+
+### 特色化案例库页面  节点字段
+
+order 第几页
+
+title
+
+case_num
+
+product_class
+
+name
+
+version
+
+app_class
+
+date
+
+username
+
+feature	特色类型
+
+page_num 案例页数
+
+detail
+
+idea 应用思路
 
 
 
@@ -93,7 +123,7 @@
    }
    ```
 
-
+11. 
 
 
 
