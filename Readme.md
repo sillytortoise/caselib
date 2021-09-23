@@ -28,6 +28,8 @@ username
 
 feature	特色类型
 
+abstract 特色摘要
+
 page_num 案例页数
 
 detail

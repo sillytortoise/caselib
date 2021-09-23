@@ -4,7 +4,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-    <title>竞品分析</title>
+    <title>特色化案例库</title>
 
     <script src="https://cdn.bootcdn.net/ajax/libs/jquery/3.6.0/jquery.js"></script>
     <script type="text/javascript" src="/static/js/jquery.form.js"></script>
@@ -97,7 +97,7 @@
             outline: none;
         }
 
-        td input,
+        th input,
         td input {
             border: 0;
             font-size: 15px;
@@ -108,7 +108,7 @@
             outline: none;
         }
 
-        td input:focus {
+        th input:focus {
             outline: none;
         }
 
@@ -152,7 +152,7 @@
 
         <div class="page-header">
             <sidebar @changepage="changepage" ref="mysidebar"></sidebar>
-            <input name="title" placeholder="请输入标题" @change="autosave" :value="info.title" />
+            <input name="title" placeholder="请输入标题" :value="info.title" @change="autosave" />
 
             <span style="float: right; margin-right:5%">
                 <button class="btn btn-danger" type="button" @click="deletePage"><span
@@ -176,101 +176,98 @@
                     <tr style="height:15.4%;width: 100%;">
                         <!--1-->
                         <th style="width: 8%;">案例编号</th>
-                        <td style="width: 12%;"><input placeholder="请输入" style="width: 100%;" /></td>
+                        <td style="width: 12%;"><input name="case-num" placeholder="请输入" style="width: 100%;"
+                                @change="autosave" :value="info.case_num" /></td>
                         <th rowspan="2" style="width: 8%;">产品名称</th>
-                        <td rowspan="2" style="width:12%"><input placeholder="请输入" style="width: 100%;" /></td>
+                        <td rowspan="2" style="width:12%"><input name="name" placeholder="请输入" style="width: 100%;"
+                                @change="autosave" :value="info.name" />
+                        </td>
                         <th style="width: 8%;">版本号</th>
-                        <td colspan="3" style="width:32%"><input placeholder="请输入" style="width: 100%;" /></td>
+                        <td colspan="3" style="width:32%"><input name="version" placeholder="请输入" style="width: 100%;"
+                                @change="autosave" :value="info.version" /></td>
                         <th style="width: 8%;">记录日期</th>
-                        <td style="width: 12%;"><input placeholder="请输入" style="width: 100%;" /></td>
+                        <td style="width: 12%;"><input name="date" placeholder="请输入" style="width: 100%;"
+                                @change="autosave" :value="info.date" /></td>
                     </tr>
-
                     <tr style="height:15.4%;width: 100%;">
                         <th style="width: 8%;">产品分类</th>
-                        <td style="width: 12%;"><input placeholder="请输入" style="width: 100%;" /></td>
+                        <td style="width: 12%;"><input name="product-class" placeholder="请输入" style="width: 100%;"
+                                @change="autosave" :value="info.product_class" />
+                        </td>
                         <th style="width: 8%;">应用分类</th>
-                        <td colspan="3" style="width:32%"><input placeholder="请输入" style="width: 100%;" /></td>
+                        <td colspan="3" style="width:32%"><input name="app-class" placeholder="请输入" style="width: 100%;"
+                                :value="info.app_class" /></td>
                         <th style="width: 8%;">记录人</th>
-                        <td style="width: 12%;"><input placeholder="请输入" style="width: 100%;" /></td>
+                        <td style="width: 12%;"><input name="info.username" placeholder="请输入" style="width: 100%;" />
+                        </td>
                     </tr>
-
                     <tr style="height:15.4%;width: 100%;">
                         <th style="width: 8%;">特色类型</th>
-                        <td style="width: 12%;"><input placeholder="请输入" style="width: 100%;" /></td>
+                        <td style="width: 12%;"><input name="feature" placeholder="请输入" style="width: 100%;"
+                                @change="autosave" :value="info.feature" /></td>
                         <th rowspan="2" style="width: 8%;">特色摘要</th>
-                        <td colspan="3" rowspan="2" style="width:32%"><input placeholder="请输入" style="width: 100%;" />
+                        <td colspan="3" rowspan="2" style="width:32%"><input name="abstract" placeholder="请输入"
+                                style="width: 100%;" @change="autosave" :value="info.abstract" />
                         </td>
                         <th rowspan="2" style="width: 8%;">应用思路</th>
-                        <td colspan="3" rowspan="2" style="width:32%;"><input placeholder="请输入" style="width: 100%;" />
+                        <td colspan="3" rowspan="2" style="width:32%;"><input name="idea" placeholder="请输入"
+                                style="width: 100%;" @change="autosave" :value="info.idea" />
                         </td>
                     </tr>
-
-
                     <tr style="height:15.4%;width: 100%;">
                         <th style="width: 8%;">案例页数</th>
-                        <td style="width: 12%;"><input placeholder="请输入" style="width: 100%;" /></td>
+                        <td style="width: 12%;"><input name="page-num" placeholder="请输入" style="width: 100%;"
+                                @change="autosave" :value="info.page_num" /></td>
                     </tr>
 
                     <tr style="height: 38.4%;width: 100%;">
                         <th style="width:8%;">详细描述</th>
-                        <td colspan="9" style="width: 92%;"><input placeholder="请输入" style="width: 100%;" /></td>
+                        <td colspan="9" style="width: 92%;"><input name="detail" placeholder="请输入" style="width: 100%;"
+                                @change="autosave" :value="info.detail" /></td>
                     </tr>
                 </table>
             </div>
             <div class="panel-body">
                 <table id="pictb" style="width: 100%;height:100%">
                     <tr style="height: 10.5%;">
-                        <th style="width: 25%;"></th>
-                        <th style="width: 25%;"></th>
-                        <th style="width: 25%;"></th>
-                        <th style="width: 25%;"></th>
+                        <th style="width: 20%;"><input name="img-title0" style="width: 100%;" @change="autosave" /></th>
+                        <th style="width: 20%;"><input name="img-title1" style="width: 100%;" @change="autosave" /></th>
+                        <th style="width: 20%;"><input name="img-title2" style="width: 100%;" @change="autosave" /></th>
+                        <th style="width: 20%;"><input name="img-title3" style="width: 100%;" @change="autosave" /></th>
+                        <th style="width: 20%;"><input name="img-title4" style="width: 100%;" @change="autosave" /></th>
                     </tr>
                     <tr style="height: 89%;">
-                        <td style="width: 25%;"></td>
-                        <td style="width: 25%;"></td>
-                        <td style="width: 25%;"></td>
-                        <td style="width: 25%;"></td>
-
+                        <td style="width: 20%;"><img id="img0" src=""></td>
+                        <td style="width: 20%;"><img id="img1" src=""></td>
+                        <td style="width: 20%;"><img id="img2" src=""></td>
+                        <td style="width: 20%;"><img id="img3" src=""></td>
+                        <td style="width: 20%;"><img id="img4" src=""></td>
                     </tr>
                 </table>
-            </div>
-        </div>
-        <!--模态框 选择功能和银行版本-->
-        <div class="modal fade" id="selcontainer" tabindex="-1" role="dialog" aria-labelledby="myModalLabel1">
-            <div class="modal-dialog" role="document">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
-                                aria-hidden="true">&times;</span></button>
-                        <h4 class="modal-title" id="myModalLabel1">请选择</h4>
+                <div id="imgsel" class="well well-lg" style="position: relative; top:20px;height:100px;padding: 10px;">
+                    <div style="width: 20%;height:150px;display: inline;float: left;">
+                        <el-button type="primary" size="small" @click="beforeUpload" round><span
+                                class="glyphicon glyphicon-cloud-upload">上传</span></el-button>
                     </div>
-                    <div class="modal-body">
-                        <selfunc @change="selchange"></selfunc>
-                        <imguploader :index="whichtoupload" :selvalue="selvalue" :page="currentPage" ref="myuploader">
-                        </imguploader>
+                    <div style="width: 20%;display: inline;float: left;">
+                        <el-button type="primary" size="small" @click="beforeUpload" round><span
+                                class="glyphicon glyphicon-cloud-upload">上传</span></el-button>
+                        <imgbrowser></imgbrowser>
                     </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
-                        <button type="button" class="btn btn-primary" data-dismiss="modal" @click="upload">上传</button>
+                    <div style="width: 20%;display: inline;float: left;">
+                        <el-button type="primary" size="small" @click="beforeUpload" round><span
+                                class="glyphicon glyphicon-cloud-upload">上传</span></el-button>
+                        <imgbrowser></imgbrowser>
                     </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Modal 选择指标-->
-        <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
-            <div class="modal-dialog" role="document">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
-                                aria-hidden="true">&times;</span></button>
-                        <h4 class="modal-title" id="myModalLabel">请选择</h4>
+                    <div style="width: 20%;display: inline;float: left;">
+                        <el-button type="primary" size="small" @click="beforeUpload" round><span
+                                class="glyphicon glyphicon-cloud-upload">上传</span></el-button>
+                        <imgbrowser></imgbrowser>
                     </div>
-                    <div class="modal-body">
-                        <seltarget @changevalue="chg"></seltarget>
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
+                    <div style="width: 20%;display: inline;float: left;">
+                        <el-button type="primary" size="small" @click="beforeUpload" round><span
+                                class="glyphicon glyphicon-cloud-upload">上传</span></el-button>
+                        <imgbrowser></imgbrowser>
                     </div>
                 </div>
             </div>
@@ -287,10 +284,8 @@
         el: "#main",
         components: {
             "sidebar": httpVueLoader("/sidebar.vue"),
-            "seltarget": httpVueLoader("/seltarget.vue"),
             "imguploader": httpVueLoader("/imguploader.vue"),
             "imgbrowser": httpVueLoader("/imgbrowser.vue"),
-            "selfunc": httpVueLoader("/selfunc.vue"),
         },
         data: {
             info: {
@@ -308,44 +303,43 @@
             this.changepage(1);
         },
         methods: {
-            chg: function (value) {
-                this.targetid = value[1];
-                axios.get(`/info?id=${value[1]}`).then((res) => {
-                    console.log(res.data);
-                    console.log(this.info.target);
-                    this.$set(this.info, 'target', res.data.target);
-                    this.$set(this.info, 'p', res.data.p);
-                    this.$set(this.info, 't', res.data.t);
-                    this.$set(this.info, "pics", res.data.pics)
-                    console.log(this.info);
-                    $("#myModal").modal('hide');
-                    this.autosave();
-                });
-            }, changepage: function (value) {
-                axios.get(`${this.task_name}?p=${value}`).then(res => {
+            showlast: function () {
+                if (this.currentPage > 1) {
+                    this.changepage(--this.currentPage);
+                    this.$refs.mysidebar.changeItemColor(this.currentPage);
+                }
+            },
+            shownext: function () {
+                if (this.currentPage < this.$refs.mysidebar.data.length) {
+                    this.changepage(++this.currentPage);
+                    this.$refs.mysidebar.changeItemColor(this.currentPage);
+                }
+            },
+            changepage: function (value) {
+                let task_type;
+                if (document.title === '竞品分析')
+                    task_type = 1;
+                else task_type = 2;
+                axios.get(`${this.task_name}?p=${value}&type=${task_type}`).then(res => {
                     let obj = new Object();
                     obj.title = res.data.title;
-                    obj.target = res.data.target;
-                    obj.problem = res.data.problem;
-                    obj.advice = res.data.advice;
-                    obj.pics = res.data.pics;
+                    obj.case_num = res.data.case_num;
+                    obj.product_class = res.data.product_class;
+                    obj.name = res.data.name;
+                    obj.version = res.data.version;
+                    obj.app_class = res.data.app_class;
+                    obj.date = res.data.date;
+                    obj.feature = res.data.feature;
+                    obj.page_num = res.data.page_num;
+                    obj.detail = res.data.detail;
+                    obj.idea = res.data.idea;
+                    obj.username = res.data.username;
                     if (obj.pics == undefined) {
                         obj.pics = [{ order: 0, path: "" }, { order: 1, path: "" }, { order: 2, path: "" }, { order: 3, path: "" }, { order: 4, path: "" }];
                     }
-                    obj.p = "";
-                    obj.t = "";
-                    this.targetid = res.data.target;
-                    if (res.data.target == undefined) {
-                        return;
-                    }
-                    axios.get(`/info?id=${res.data.target}`).then((r) => {
-                        obj.target = r.data.target;
-                        obj.p = r.data.p;
-                        obj.t = r.data.t;
-                        this.info = obj;
-                        console.log(this.info);
-                        this.currentPage = value;
-                    });
+                    this.info = obj;
+                    console.log(obj);
+                    this.currentPage = value;
                 })
             },
             addtoend: function () {
@@ -392,6 +386,34 @@
                     this.$refs.mysidebar.changeItemColor(this.currentPage);
                 }
             },
+            autosave: function () {
+                console.log(this.currentPage);
+                $.ajax({
+                    type: 'POST',
+                    url: `${window.location.pathname.split("/")[2]}/autosave?p=${app.currentPage}&type=2`,
+                    data: {
+                        title: $("input[name='title']").val(),
+                        case_num: $("input[name='case-num']").val(),
+                        product_class: $("input[name='product-class']").val(),
+                        name: $("input[name='name']").val(),
+                        version: $("input[name='version']").val(),
+                        app_class: $("input[name='app-class']").val(),
+                        date: $("input[name='date']").val(),
+                        feature: $("input[name='feature']").val(),
+                        abstract: $("input[name='abstract']").val(),
+                        page_num: $("input[name='page-num']").val(),
+                        detail: $("input[name='detail']").val(),
+                        idea: $("input[name='idea']").val(),
+                    },
+                    success: function () {
+                        app.$message({
+                            type: 'success',
+                            message: '自动保存',
+                            duration: 2000
+                        });
+                    }
+                })
+            },
             beforeUpload: function (event) {
                 $("#selcontainer").modal();
                 if (event.target.tagName == 'SPAN') {
@@ -400,42 +422,8 @@
                 else {
                     this.whichtoupload = $(event.target).index('.el-button--primary');
                 }
-            },
-            upload: function () {
-                this.$refs.myuploader.submitUpload();
                 console.log(this.whichtoupload);
-                console.log(this.selvalue);
-
             },
-            selchange: function (value) {
-                this.selvalue.func = value[0];
-                this.selvalue.bank = value[1][0];
-                this.selvalue.ver = value[1][1];
-            },
-            autosave: function () {
-                $.ajax({
-                    type: 'POST',
-                    url: `${window.location.pathname.split("/")[2]}/autosave?p=${app.current}`,
-                    data: {
-                        targetid: this.targetid,
-                        title: $("input[name='title']").val(),
-                        problem: $("input[name='problem']").val(),
-                        advice: $("input[name='advice']").val(),
-                        imgname: $("input[name='imgname']").val(),
-                        p: this.currentPage
-                    },
-                    success: function () {
-                        app.$message({
-                            type: 'success',
-                            message: '自动保存',
-                            duration: 2000
-                        })
-                    }
-                });
-            },
-            getpics: function () {
-
-            }
         },
     })
 </script>

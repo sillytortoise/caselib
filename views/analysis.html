@@ -436,7 +436,7 @@
             autosave: function () {
                 $.ajax({
                     type: 'POST',
-                    url: `${window.location.pathname.split("/")[2]}/autosave?p=${app.current}`,
+                    url: `${window.location.pathname.split("/")[2]}/autosave?p=${app.currentPage}&type=1`,
                     data: {
                         targetid: this.targetid,
                         title: $("input[name='title']").val(),

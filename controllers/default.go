@@ -121,13 +121,31 @@ type PageOutline struct {
 	Order int64  `json:"order"`
 }
 
-type Page struct {
+type Page struct { //竞品分析页面
 	Title   string `json:"title"`
 	Target  string `json:"target"`
 	Problem string `json:"problem"`
 	Pic     string `json:"pic"`
 	Advice  string `json:"advice"`
 	Pics    []Pic  `json:"pics"`
+}
+
+type PageCase struct { //特色化案例库页面
+	Title         string `json:"title"`
+	Order         int64  `json:"order"`
+	Case_num      string `json:"case_num"`
+	Product_class string `json:"product_class"`
+	Name          string `json:"name"`
+	Version       string `json:"version"`
+	App_class     string `json:"app_class"`
+	Date          string `json:"date"`
+	Feature       string `json:"feature"`
+	Abstract      string `json:"abstract"`
+	Page_num      string `json:"page_num"`
+	Detail        string `json:"detail"`
+	Idea          string `json:"idea"`
+	Username      string
+	Pics          []Pic `json:"pics"`
 }
 
 type Bank struct {
@@ -556,7 +574,15 @@ func (c *TaskController) Post() { //创建任务
 		if err != nil {
 			panic(err)
 		}
-		_, err = tx.Run("match (n:User{username:$username})-[r:Control{permission:'own'}]->(t:Task{name:$name}) create (p:Page{order:1,title:'',target:'',problem:'',advice:'',pic:''})<-[i:Include]-(t)", map[string]interface{}{"username": username, "name": name})
+		if t == "1" {
+			_, err = tx.Run("match (n:User{username:$username})-[r:Control{permission:'own'}]->(t:Task{name:$name}) create (p:Page{order:1,title:'',target:'',problem:'',advice:'',pic:''})<-[i:Include]-(t)", map[string]interface{}{"username": username, "name": name})
+		} else {
+			t := time.Now()
+			s := t.Format("2006-01-02")
+			_, err = tx.Run(`match (n:User{username:$username})-[r:Control{permission:'own'}]->(t:Task{name:$name}) 
+			create (t)-[i:Include]->(p:Page{order:1,title:'',case_num:'',product_class:'',name:'',version:'',app_class:'', 
+			date:$d, feature:'', abstract:'', page_name:'', detail:'', idea:'', username:$username})`, map[string]interface{}{"username": username, "name": name, "d": s})
+		}
 		if err != nil {
 			panic(err)
 		}
@@ -651,8 +677,14 @@ func (c *TaskController) Delete() {
 
 func (c *PageController) Get() { //changePage ?p=
 	page := c.GetString("p")
+	task_type := c.GetString("type")
+
 	if page == "" {
-		c.TplName = "analysis.html"
+		if task_type == "1" {
+			c.TplName = "analysis.html"
+		} else {
+			c.TplName = "case.html"
+		}
 		return
 	}
 	driver, err := neo4j.NewDriver(dbUri, neo4j.BasicAuth("neo4j", "980115", ""))
@@ -666,38 +698,111 @@ func (c *PageController) Get() { //changePage ?p=
 	defer session.Close()
 	result, _ := session.ReadTransaction(func(tx neo4j.Transaction) (interface{}, error) {
 		p, _ := strconv.Atoi(page)
-		r, err := tx.Run("match (u:User{username:$user})-[r:Control]->(t:Task{name:$name}),(t)-[i:Include]->(p:Page{order:$order}) return p.title as title, p.targetid as target, p.problem as problem, p.advice as advice", map[string]interface{}{"user": user, "name": name, "order": p})
-		if err != nil {
-			panic(err)
-		}
-		var obj Page
-		if r.Next() {
-			record := r.Record()
-			title, _ := record.Get("title")
-			target, _ := record.Get("target")
-			problem, _ := record.Get("problem")
-			advice, _ := record.Get("advice")
-			obj.Title, _ = title.(string)
-			obj.Target, _ = target.(string)
-			obj.Problem, _ = problem.(string)
-			obj.Advice, _ = advice.(string)
-		}
-		r, err = tx.Run(`match (u:User{username:$user})-[r:Control]->(t:Task{name:$name}),
+		var r neo4j.Result
+		if task_type == "1" {
+			r, err = tx.Run("match (u:User{username:$user})-[r:Control]->(t:Task{name:$name}),(t)-[i:Include]->(p:Page{order:$order}) return p.title as title, p.targetid as target, p.problem as problem, p.advice as advice", map[string]interface{}{"user": user, "name": name, "order": p})
+			if err != nil {
+				panic(err)
+			}
+			var obj Page
+			if r.Next() {
+				record := r.Record()
+				title, _ := record.Get("title")
+				target, _ := record.Get("target")
+				problem, _ := record.Get("problem")
+				advice, _ := record.Get("advice")
+				obj.Title, _ = title.(string)
+				obj.Target, _ = target.(string)
+				obj.Problem, _ = problem.(string)
+				obj.Advice, _ = advice.(string)
+			}
+
+			r, err = tx.Run(`match (u:User{username:$user})-[r:Control]->(t:Task{name:$name}),
 		(t)-[i:Include]->(p:Page{order:$order}),
 		(p)-[c:Contains]->(pic:Pic) 
 		return pic.order as order,pic.path as path order by pic.order`, map[string]interface{}{"user": user, "name": name, "order": p})
-		if err != nil {
-			panic(err)
+			if err != nil {
+				panic(err)
+			}
+			for r.Next() {
+				record := r.Record()
+				order, _ := record.Get("order")
+				path, _ := record.Get("path")
+				orderint, _ := order.(int64)
+				pathstr, _ := path.(string)
+				obj.Pics = append(obj.Pics, Pic{orderint, pathstr})
+			}
+			return obj, nil
+		} else {
+			fmt.Println("进入else")
+			r, err = tx.Run(`match (u:User{username:$user})-[r:Control]->(t:Task{name:$name}),
+			(t)-[i:Include]->(p:Page{order:$order}) 
+			return p.title as title,
+			p.case_num as case_num,
+			p.product_class as product_class,
+			p.name as name,
+			p.version as version,
+			p.app_class as app_class,
+			p.date as mdate,
+			p.feature as feature,
+			p.abstract as abstract,
+			p.page_num as page_num,
+			p.detail as detail,
+			p.idea as idea,
+			p.username as username`, map[string]interface{}{"user": user, "name": name, "order": p})
+			if err != nil {
+				panic(err)
+			}
+			var obj PageCase
+			if r.Next() {
+				record := r.Record()
+				title, _ := record.Get("title")
+				case_num, _ := record.Get("case_num")
+				product_class, _ := record.Get("product_class")
+				name, _ := record.Get("name")
+				version, _ := record.Get("version")
+				app_class, _ := record.Get("app_class")
+				date, _ := record.Get("mdate")
+				feature, _ := record.Get("feature")
+				abstract, _ := record.Get("abstract")
+				page_num, _ := record.Get("page_num")
+				detail, _ := record.Get("detail")
+				idea, _ := record.Get("idea")
+				username, _ := record.Get("username")
+				obj.Title, _ = title.(string)
+				obj.Case_num, _ = case_num.(string)
+				obj.Product_class, _ = product_class.(string)
+				obj.Name, _ = name.(string)
+				obj.Version, _ = version.(string)
+				obj.App_class, _ = app_class.(string)
+				obj.Date, _ = date.(string)
+				obj.Feature, _ = feature.(string)
+				obj.Abstract, _ = abstract.(string)
+				obj.Page_num, _ = page_num.(string)
+				obj.Detail, _ = detail.(string)
+				obj.Idea, _ = idea.(string)
+				obj.Username = username.(string)
+			}
+
+			r, err = tx.Run(`match (u:User{username:$user})-[r:Control]->(t:Task{name:$name}),
+		(t)-[i:Include]->(p:Page{order:$order}),
+		(p)-[c:Contains]->(pic:Pic) 
+		return pic.order as order,pic.path as path order by pic.order`, map[string]interface{}{"user": user, "name": name, "order": p})
+			if err != nil {
+				panic(err)
+			}
+			for r.Next() {
+				record := r.Record()
+				order, _ := record.Get("order")
+				path, _ := record.Get("path")
+				orderint, _ := order.(int64)
+				pathstr, _ := path.(string)
+				obj.Pics = append(obj.Pics, Pic{orderint, pathstr})
+			}
+			return obj, nil
+
 		}
-		for r.Next() {
-			record := r.Record()
-			order, _ := record.Get("order")
-			path, _ := record.Get("path")
-			orderint, _ := order.(int64)
-			pathstr, _ := path.(string)
-			obj.Pics = append(obj.Pics, Pic{orderint, pathstr})
-		}
-		return obj, nil
+
 	})
 	c.Data["json"] = result
 	c.ServeJSON()
@@ -736,6 +841,7 @@ func (c *PageController) Get_pages() {
 func (c *PageController) Addtoend() {
 	user := c.Ctx.Input.Param(":user")
 	name := c.Ctx.Input.Param(":name")
+	t := c.GetString("type")
 	driver, err := neo4j.NewDriver(dbUri, neo4j.BasicAuth("neo4j", "980115", ""))
 	if err != nil {
 		panic(err)
@@ -743,14 +849,27 @@ func (c *PageController) Addtoend() {
 	defer driver.Close()
 	session := driver.NewSession(neo4j.SessionConfig{})
 	defer session.Close()
-	fmt.Println(user, name)
-	_, _ = session.WriteTransaction(func(tx neo4j.Transaction) (interface{}, error) {
-		_, err := tx.Run("match (u:User{username:$user})-[r:Control]->(t:Task{name:$name}) create (t)-[i:Include]->(p:Page{title:'',order:t.totalnum+1}) set t.totalnum=t.totalnum+1", map[string]interface{}{"name": name, "user": user})
-		if err != nil {
-			panic(err)
-		}
-		return nil, nil
-	})
+	if t == "1" {
+		_, _ = session.WriteTransaction(func(tx neo4j.Transaction) (interface{}, error) {
+			_, err := tx.Run("match (u:User{username:$user})-[r:Control]->(t:Task{name:$name}) create (t)-[i:Include]->(p:Page{title:'',order:t.totalnum+1}) set t.totalnum=t.totalnum+1", map[string]interface{}{"name": name, "user": user})
+			if err != nil {
+				panic(err)
+			}
+			return nil, nil
+		})
+	} else {
+		d := time.Now()
+		s := d.Format("2006-01-02")
+		_, _ = session.WriteTransaction(func(tx neo4j.Transaction) (interface{}, error) {
+			_, err = tx.Run(`match (n:User{username:$username})-[r:Control]->(t:Task{name:$name}) 
+			create (t)-[i:Include]->(p:Page{order:t.totalnum+1, title:'',case_num:'',product_class:'',name:'',version:'',app_class:'', 
+			date:$d, feature:'', abstract:'', page_name:'', detail:'', idea:'', username:$username}) set t.totalnum=t.totalnum+1`, map[string]interface{}{"username": user, "name": name, "d": s})
+			if err != nil {
+				panic(err)
+			}
+			return nil, nil
+		})
+	}
 	c.Ctx.WriteString("1")
 }
 
@@ -758,6 +877,7 @@ func (c *PageController) Addtonext() {
 	user := c.Ctx.Input.Param(":user")
 	name := c.Ctx.Input.Param(":name")
 	p := c.GetString("p")
+	t := c.GetString("type")
 	driver, err := neo4j.NewDriver(dbUri, neo4j.BasicAuth("neo4j", "980115", ""))
 	if err != nil {
 		panic(err)
@@ -772,7 +892,17 @@ func (c *PageController) Addtonext() {
 			panic(err)
 		}
 		_, _ = tx.Run("match (u:User{username:$user})-[r:Control]->(t:Task{name:$name}) set t.totalnum=t.totalnum+1", map[string]interface{}{"name": name, "user": user})
-		_, err = tx.Run("match (u:User{username:$user})-[r:Control]->(t:Task{name:$name}) create (t)-[i:Include]->(p:Page{title:'', order:$order})", map[string]interface{}{"user": user, "name": name, "order": pint + 1})
+		if t == "1" {
+			_, err = tx.Run("match (u:User{username:$user})-[r:Control]->(t:Task{name:$name}) create (t)-[i:Include]->(p:Page{title:'', order:$order})", map[string]interface{}{"user": user, "name": name, "order": pint + 1})
+		} else {
+			s := time.Now().Format("2006-01-02")
+			_, err = tx.Run(`match (n:User{username:$username})-[r:Control]->(t:Task{name:$name}) 
+			create (t)-[i:Include]->(p:Page{order:$order, title:'',case_num:'',product_class:'',name:'',version:'',app_class:'', 
+			date:$d, feature:'', abstract:'', page_name:'', detail:'', idea:'', username:$username})`, map[string]interface{}{"username": user, "name": name, "d": s, "order": pint + 1})
+		}
+		if err != nil {
+			panic(err)
+		}
 		return nil, err
 	})
 	c.Ctx.WriteString("1")
@@ -907,15 +1037,9 @@ func (c *PageController) Upload_pic() {
 }
 
 func (c *PageController) Autosave() {
+	t := c.GetString("type")
 	user := c.Ctx.Input.Param(":user")
 	task := c.Ctx.Input.Param(":task")
-	page := c.GetString("p")
-	title := c.GetString("title")
-	problem := c.GetString("problem")
-	advice := c.GetString("advice")
-	imgname := c.GetString("imgname")
-	targetid := c.GetString("targetid")
-
 	driver, err := neo4j.NewDriver(dbUri, neo4j.BasicAuth("neo4j", "980115", ""))
 	if err != nil {
 		panic(err)
@@ -924,20 +1048,55 @@ func (c *PageController) Autosave() {
 	session := driver.NewSession(neo4j.SessionConfig{})
 	defer session.Close()
 
-	pint, _ := strconv.Atoi(page)
-	fmt.Println(title)
-	fmt.Println(pint)
-	fmt.Println(page)
+	if t == "1" {
+		page := c.GetString("p")
+		title := c.GetString("title")
+		problem := c.GetString("problem")
+		advice := c.GetString("advice")
+		imgname := c.GetString("imgname")
+		targetid := c.GetString("targetid")
+		pint, _ := strconv.Atoi(page)
 
-	_, _ = session.WriteTransaction(func(tx neo4j.Transaction) (interface{}, error) {
-		_, err := tx.Run(`match (u:User{username:$user})-[r:Control]->(t:Task{name:$name}),
+		_, _ = session.WriteTransaction(func(tx neo4j.Transaction) (interface{}, error) {
+			_, err := tx.Run(`match (u:User{username:$user})-[r:Control]->(t:Task{name:$name}),
 		(t)-[i:Include]->(p:Page{order:$order}) 
 		set p.title=$title,p.problem=$problem,p.advice=$advice,p.imgname=$imgname,p.targetid=$targetid`,
-			map[string]interface{}{"user": user, "name": task, "order": pint, "title": title, "problem": problem, "advice": advice, "imgname": imgname, "targetid": targetid})
-		if err != nil {
-			panic(err)
-		}
-		return nil, nil
-	})
+				map[string]interface{}{"user": user, "name": task, "order": pint, "title": title, "problem": problem, "advice": advice, "imgname": imgname, "targetid": targetid})
+			if err != nil {
+				panic(err)
+			}
+			return nil, nil
+		})
+	} else {
+		page := c.GetString("p")
+		title := c.GetString("title")
+		case_num := c.GetString("case_num")
+		product_class := c.GetString("product_class")
+		name := c.GetString("name")
+		version := c.GetString("version")
+		app_class := c.GetString("app_class")
+		feature := c.GetString("feature")
+		abstract := c.GetString("abstract")
+		page_num := c.GetString("page_num")
+		detail := c.GetString("detail")
+		idea := c.GetString("idea")
+		fmt.Println(page, title, case_num, product_class, name, version, app_class, feature, abstract, page_num, detail, idea)
+		pint, _ := strconv.Atoi(page)
+		_, _ = session.WriteTransaction(func(tx neo4j.Transaction) (interface{}, error) {
+			_, err := tx.Run(`match (u:User{username:$user})-[r:Control]->(t:Task{name:$task}),
+		(t)-[i:Include]->(p:Page{order:$order}) 
+		set p.title=$title,p.case_num=$case_num,p.product_class=$product_class,
+		p.name=$name,p.version=$version,
+		p.app_class=$app_class, p.feature=$feature, p.abstract=$abstract,
+		p.page_num=$page_num, p.detail=$detail, p.idea=$idea`,
+				map[string]interface{}{"user": user, "task": task, "order": pint, "title": title, "case_num": case_num, "product_class": product_class,
+					"name": name, "version": version, "app_class": app_class, "feature": feature, "abstract": abstract,
+					"page_num": page_num, "detail": detail, "idea": idea})
+			if err != nil {
+				panic(err)
+			}
+			return nil, nil
+		})
+	}
 	c.Ctx.WriteString("success")
 }

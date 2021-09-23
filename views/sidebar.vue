@@ -57,7 +57,7 @@ module.exports = {
 			max_height *= 1.25;
 			$(".panel-default").css("height", height.toFixed(2) + "px");
 			$(".panel-default").css("width", width.toFixed(2) + "px");
-			$("img").css("max-height", width.toFixed(2) + "px");
+			$("img").css("max-height", max_height.toFixed(2) + "px");
 			done();
 		},
 		handleOpen() {
@@ -72,7 +72,10 @@ module.exports = {
 			$("img").css("max-height", max_height.toFixed(2) + "px");
 		},
 		addtoend() {
-			axios.get(`${this.task}/addtoend`).then((res) => {
+			let task_type;
+			if (document.title === "竞品分析") task_type = 1;
+			else task_type = 2;
+			axios.get(`${this.task}/addtoend?type=${task_type}`).then((res) => {
 				this.get_pages();
 				this.$message({
 					type: "success",
@@ -82,14 +85,19 @@ module.exports = {
 			});
 		},
 		addtonext() {
-			axios.get(`${this.task}/addtonext?p=${this.currentPage}`).then((res) => {
-				this.get_pages();
-				this.$message({
-					type: "success",
-					message: "新增成功!",
-					duration: 2000,
+			let task_type;
+			if (document.title === "竞品分析") task_type = 1;
+			else task_type = 2;
+			axios
+				.get(`${this.task}/addtonext?p=${this.currentPage}&type=${task_type}`)
+				.then((res) => {
+					this.get_pages();
+					this.$message({
+						type: "success",
+						message: "新增成功!",
+						duration: 2000,
+					});
 				});
-			});
 		},
 		get_pages() {
 			axios.get(`${this.task}/get_pages`).then((res) => {

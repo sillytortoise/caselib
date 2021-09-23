@@ -294,7 +294,11 @@ module.exports = {
 		},
 		choose_task: function (event) {
 			let name = $(event.target).parents("tr").attr("name");
-			window.open(`/${this.username}/${name}`);
+			let task_type = $($(event.target).parents("tr").children("td")[4]).text();
+			let task_type_flag;
+			if (task_type == "竞品分析") task_type_flag = 1;
+			else task_type_flag = 2;
+			window.open(`/${this.username}/${name}?type=${task_type_flag}`);
 		},
 		delete_task: function (event) {
 			axios
