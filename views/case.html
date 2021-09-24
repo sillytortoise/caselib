@@ -77,8 +77,7 @@
 
 
         img {
-            width: 100%;
-            height: 100%;
+            max-height: 426px;
         }
 
         .el-drawer__wrapper {
@@ -237,11 +236,21 @@
                         <th style="width: 20%;"><input name="img-title4" style="width: 100%;" @change="autosave" /></th>
                     </tr>
                     <tr style="height: 89%;">
-                        <td style="width: 20%;"><img id="img0" src=""></td>
-                        <td style="width: 20%;"><img id="img1" src=""></td>
-                        <td style="width: 20%;"><img id="img2" src=""></td>
-                        <td style="width: 20%;"><img id="img3" src=""></td>
-                        <td style="width: 20%;"><img id="img4" src=""></td>
+                        <td style="width: 20%;text-align: center;"><img id="img0"
+                                :src="'/'+(info.pics.length>0?info.pics[0].path:'')">
+                        </td>
+                        <td style="width: 20%;text-align: center;"><img id="img1"
+                                :src="'/'+(info.pics.length>1?info.pics[1].path:'')">
+                        </td>
+                        <td style="width: 20%;text-align: center;"><img id="img2"
+                                :src="'/'+(info.pics.length>2?info.pics[2].path:'')">
+                        </td>
+                        <td style="width: 20%;text-align: center;"><img id="img3"
+                                :src="'/'+(info.pics.length>3?info.pics[3].path:'')">
+                        </td>
+                        <td style="width: 20%;text-align: center;"><img id="img4"
+                                :src="'/'+(info.pics.length>4?info.pics[4].path:'')">
+                        </td>
                     </tr>
                 </table>
                 <div id="imgsel" class="well well-lg" style="position: relative; top:20px;height:100px;padding: 10px;">
@@ -273,6 +282,28 @@
             </div>
         </div>
 
+        <!--模态框 选择功能和银行版本-->
+        <div class="modal fade" id="selcontainer" tabindex="-1" role="dialog" aria-labelledby="myModalLabel1">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
+                                aria-hidden="true">&times;</span></button>
+                        <h4 class="modal-title" id="myModalLabel1">请选择</h4>
+                    </div>
+                    <div class="modal-body">
+                        <selfunc @change="selchange"></selfunc>
+                        <imguploader :index="whichtoupload" :selvalue="selvalue" :page="currentPage" ref="myuploader">
+                        </imguploader>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
+                        <button type="button" class="btn btn-primary" data-dismiss="modal" @click="upload">上传</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
     </div>
 
 
@@ -286,6 +317,8 @@
             "sidebar": httpVueLoader("/sidebar.vue"),
             "imguploader": httpVueLoader("/imguploader.vue"),
             "imgbrowser": httpVueLoader("/imgbrowser.vue"),
+            "selfunc": httpVueLoader("/selfunc.vue"),
+
         },
         data: {
             info: {
@@ -294,8 +327,7 @@
             task_name: null,
             currentPage: 1,
             whichtoupload: 0,
-            selvalue: {},
-            targetid: ""
+            selvalue: {}
         },
         created: function () {
             this.user = window.location.pathname.split("/")[1];
@@ -334,11 +366,11 @@
                     obj.detail = res.data.detail;
                     obj.idea = res.data.idea;
                     obj.username = res.data.username;
+                    obj.pics = res.data.pics;
                     if (obj.pics == undefined) {
                         obj.pics = [{ order: 0, path: "" }, { order: 1, path: "" }, { order: 2, path: "" }, { order: 3, path: "" }, { order: 4, path: "" }];
                     }
                     this.info = obj;
-                    console.log(obj);
                     this.currentPage = value;
                 })
             },
@@ -424,6 +456,21 @@
                 }
                 console.log(this.whichtoupload);
             },
+            selchange: function (value) {
+                this.selvalue.func = value[0];
+                this.selvalue.bank = value[1][0];
+                this.selvalue.ver = value[1][1];
+            },
+            upload: function () {
+                this.$refs.myuploader.submitUpload();
+                this.sleep(500);
+                this.changepage(this.currentPage);
+            },
+            sleep: function (milli) {
+                let start = new Date().getTime();
+                while (new Date().getTime() < start + milli) { }
+                return;
+            }
         },
     })
 </script>

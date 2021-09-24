@@ -144,8 +144,8 @@ type PageCase struct { //特色化案例库页面
 	Page_num      string `json:"page_num"`
 	Detail        string `json:"detail"`
 	Idea          string `json:"idea"`
-	Username      string
-	Pics          []Pic `json:"pics"`
+	Username      string `json:"username"`
+	Pics          []Pic  `json:"pics"`
 }
 
 type Bank struct {
@@ -720,7 +720,7 @@ func (c *PageController) Get() { //changePage ?p=
 			r, err = tx.Run(`match (u:User{username:$user})-[r:Control]->(t:Task{name:$name}),
 		(t)-[i:Include]->(p:Page{order:$order}),
 		(p)-[c:Contains]->(pic:Pic) 
-		return pic.order as order,pic.path as path order by pic.order`, map[string]interface{}{"user": user, "name": name, "order": p})
+		return c.order as order,pic.path as path order by pic.order`, map[string]interface{}{"user": user, "name": name, "order": p})
 			if err != nil {
 				panic(err)
 			}
@@ -787,7 +787,7 @@ func (c *PageController) Get() { //changePage ?p=
 			r, err = tx.Run(`match (u:User{username:$user})-[r:Control]->(t:Task{name:$name}),
 		(t)-[i:Include]->(p:Page{order:$order}),
 		(p)-[c:Contains]->(pic:Pic) 
-		return pic.order as order,pic.path as path order by pic.order`, map[string]interface{}{"user": user, "name": name, "order": p})
+		return c.order as order,pic.path as path order by pic.order`, map[string]interface{}{"user": user, "name": name, "order": p})
 			if err != nil {
 				panic(err)
 			}
@@ -1012,22 +1012,21 @@ func (c *PageController) Upload_pic() {
 
 	_, _ = session.WriteTransaction(func(tx neo4j.Transaction) (interface{}, error) {
 		fmt.Println(user, task, pint, rank)
-		r, err := tx.Run("match (u:User{username:$user})-[r:Control]->(t:Task{name:$name}),(t)-[i:Include]->(p:Page{order:$order}),(p)-[c:Contains]->(pic:Pic{order:$rank}) return pic as pi", map[string]interface{}{"user": user, "name": task, "order": pint, "rank": rank})
+		r, err := tx.Run("match (u:User{username:$user})-[r:Control]->(t:Task{name:$name}),(t)-[i:Include]->(p:Page{order:$order}),(p)-[c:Contains{order:$rank}]->(pic:Pic) return pic as pi", map[string]interface{}{"user": user, "name": task, "order": pint, "rank": rank})
 		if err != nil {
 			panic(err)
 		}
 		if r.Next() {
-			fmt.Println("已经有了")
-			_, err = tx.Run("match (u:User{username:$user})-[r:Control]->(t:Task{name:$name}),(t)-[i:Include]->(p:Page{order:$order}),(p)-[c:Contains]->(pic:Pic{order:$rank}) delete c", map[string]interface{}{"user": user, "name": task, "order": pint, "rank": rank})
+			_, err = tx.Run("match (u:User{username:$user})-[r:Control]->(t:Task{name:$name}),(t)-[i:Include]->(p:Page{order:$order}),(p)-[c:Contains{order:$rank}]->(pic:Pic) delete c", map[string]interface{}{"user": user, "name": task, "order": pint, "rank": rank})
 			if err != nil {
 				panic(err)
 			}
 		}
-		_, err = tx.Run("match (u:User{username:$user})-[r:Control]->(t:Task{name:$name}),(t)-[i:Include]->(p:Page{order:$order}) create (p)-[c:Contains]->(pic:Pic{path:$path,order:$rank,bank:$bank,ver:$ver})", map[string]interface{}{"user": user, "name": task, "order": pint, "path": fileName, "rank": rank, "bank": bank, "ver": ver})
+		_, err = tx.Run("match (u:User{username:$user})-[r:Control]->(t:Task{name:$name}),(t)-[i:Include]->(p:Page{order:$order}) create (p)-[c:Contains{order:$rank}]->(pic:Pic{path:$path,bank:$bank,ver:$ver})", map[string]interface{}{"user": user, "name": task, "order": pint, "path": fileName, "rank": rank, "bank": bank, "ver": ver})
 		if err != nil {
 			panic(err)
 		}
-		_, err = tx.Run("match (f:Func{name:$name}),(p:Pic{path:$path,order:$rank,bank:$bank,ver:$ver}) create (p)-[i:Inplements]->(f)", map[string]interface{}{"name": fun, "path": fileName, "rank": rank, "bank": bank, "ver": ver})
+		_, err = tx.Run("match (f:Func{name:$name}),(p:Pic{path:$path,bank:$bank,ver:$ver}) create (p)-[i:Implements]->(f)", map[string]interface{}{"name": fun, "path": fileName, "bank": bank, "ver": ver})
 		if err != nil {
 			panic(err)
 		}
