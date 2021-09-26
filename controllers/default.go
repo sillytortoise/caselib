@@ -160,8 +160,14 @@ type Ver struct {
 }
 
 type Pic struct {
-	Order int64  `json:"order"`
-	Path  string `json:"path"`
+	Path string `json:"path"`
+	Bank string `json:"bank"`
+	Ver  string `json:"ver"`
+}
+
+type TotalPic struct {
+	Total int64 `json:"total"`
+	Imgs  []Pic `json:"imgs"`
 }
 
 func init() {
@@ -726,11 +732,9 @@ func (c *PageController) Get() { //changePage ?p=
 			}
 			for r.Next() {
 				record := r.Record()
-				order, _ := record.Get("order")
 				path, _ := record.Get("path")
-				orderint, _ := order.(int64)
 				pathstr, _ := path.(string)
-				obj.Pics = append(obj.Pics, Pic{orderint, pathstr})
+				obj.Pics = append(obj.Pics, Pic{Path: pathstr})
 			}
 			return obj, nil
 		} else {
@@ -793,11 +797,9 @@ func (c *PageController) Get() { //changePage ?p=
 			}
 			for r.Next() {
 				record := r.Record()
-				order, _ := record.Get("order")
 				path, _ := record.Get("path")
-				orderint, _ := order.(int64)
 				pathstr, _ := path.(string)
-				obj.Pics = append(obj.Pics, Pic{orderint, pathstr})
+				obj.Pics = append(obj.Pics, Pic{Path: pathstr})
 			}
 			return obj, nil
 
@@ -1098,4 +1100,46 @@ func (c *PageController) Autosave() {
 		})
 	}
 	c.Ctx.WriteString("success")
+}
+
+func (c *ImageController) Allimages() {
+	page := c.GetString("p")
+	page_int, _ := strconv.Atoi(page)
+	driver, err := neo4j.NewDriver(dbUri, neo4j.BasicAuth("neo4j", "980115", ""))
+	if err != nil {
+		panic(err)
+	}
+	defer driver.Close()
+	session := driver.NewSession(neo4j.SessionConfig{})
+	defer session.Close()
+	results, _ := session.ReadTransaction(func(tx neo4j.Transaction) (interface{}, error) {
+		records, err := tx.Run(`match (p:Pic) return p.path as path, p.bank as bank, p.ver as ver skip $head limit 20`, map[string]interface{}{"head": (page_int - 1) * 20})
+		if err != nil {
+			panic(err)
+		}
+		var pics []Pic
+		for records.Next() {
+			record := records.Record()
+			path, _ := record.Get("path")
+			bank, _ := record.Get("bank")
+			ver, _ := record.Get("ver")
+			pathstr, _ := path.(string)
+			bankstr, _ := bank.(string)
+			verstr, _ := ver.(string)
+			pics = append(pics, Pic{Path: pathstr, Bank: bankstr, Ver: verstr})
+		}
+		total, err := tx.Run("match (p:Pic) return count(p) as num", map[string]interface{}{})
+		if err != nil {
+			panic(err)
+		}
+		var num int64
+		if total.Next() {
+			record := total.Record()
+			numi, _ := record.Get("num")
+			num, _ = numi.(int64)
+		}
+		return TotalPic{num, pics}, nil
+	})
+	c.Data["json"] = results
+	c.ServeJSON()
 }

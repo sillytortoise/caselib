@@ -1,8 +1,5 @@
 <template>
 	<div style="margin-top: 15px">
-		<el-button size="small" type="success" round
-			><span class="glyphicon glyphicon-picture">浏览</span></el-button
-		>
 		<div
 			class="modal fade"
 			id="myModalimgb"
@@ -25,13 +22,40 @@
 						<h4 class="modal-title" id="myModalimgbLabel">选择</h4>
 					</div>
 					<div class="modal-body">
-						<selfunc></selfunc>
-					</div>
-					<div class="modal-footer">
-						<button type="button" class="btn btn-default" data-dismiss="modal">
-							关闭
+						<selfunc ref="imgb-selfunc"></selfunc>
+						<button type="button" class="btn btn-primary" @click="sure">
+							确定
 						</button>
-						<button type="button" class="btn btn-primary">确定</button>
+						<div class="block">
+							<!--分页-->
+							<el-pagination
+								@current-change="handleCurrentChange"
+								:current-page.sync="currentPage"
+								:page-size="20"
+								layout="total, prev, pager, next"
+								:total="total"
+							>
+							</el-pagination>
+						</div>
+						<div style="width: 100%">
+							<div
+								v-for="t in imgs"
+								:key="t.path"
+								style="display: inline-block; height: auto; width: auto"
+							>
+								<span
+									class="glyphicon glyphicon-ok-sign"
+									style="visibility: hidden"
+								></span>
+								<el-image
+									style="max-width: 70px; height: 150px"
+									:src="'/' + t.path"
+									:preview-src-list="['/' + t.path]"
+									@contextmenu.prevent="select"
+								>
+								</el-image>
+							</div>
+						</div>
 					</div>
 				</div>
 				<!-- /.modal-content -->
@@ -44,12 +68,68 @@
 <script>
 module.exports = {
 	data() {
-		return {};
+		return {
+			total: 0,
+			imgs: [],
+			currentPage: null,
+			selectpic: null,
+		};
 	},
+	emits: ["choosepic"],
 	components: {
 		selfunc: httpVueLoader("/selfunc.vue"),
 	},
-	created: function () {},
-	methods: {},
+	created: function () {
+		/* {
+			total:...,
+			imgs:[     每一页显示的图片
+				{
+					path:...,
+					bank:...,
+					ver:...
+				},
+				{
+					path:...,
+					bank:...,
+					ver:...
+				},
+				...
+			]
+		}
+		*/
+		axios.get(`/allimages?p=1`).then((res) => {
+			this.total = res.data.total;
+			this.imgs = res.data.imgs;
+		});
+	},
+	methods: {
+		handleCurrentChange(val) {
+			axios.get(`/allimages?p=${this.currentPage}`).then((res) => {
+				this.imgs = res.data.imgs;
+			});
+		},
+		select(event) {
+			$(".glyphicon-ok-sign").css("visibility", "hidden");
+			$($(event.target).parent().prev()).css("visibility", "");
+			this.selectpic = $(event.target).attr("src");
+			console.log(this.selectpic);
+		},
+		sure() {
+			this.$emit("choosepic", this.selectpic);
+		},
+	},
 };
 </script>
+
+<style scoped>
+.modal {
+	height: 600px;
+}
+
+span {
+	position: relative;
+	bottom: 150px;
+	left: 50px;
+	z-index: 9999;
+}
+</style>

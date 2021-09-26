@@ -18,6 +18,7 @@ func init() {
 	beego.Router("/:filename([a-z]+\\.html)", &controllers.TplController{})
 	beego.Router("/:pic([a-z0-9]+\\.jpe?g)", &controllers.ImageController{})
 	beego.Router("/:pic([a-z0-9]+\\.png)", &controllers.ImageController{})
+	beego.Router("/allimages", &controllers.ImageController{}, "get:Allimages")
 	beego.Router("/*.css", &controllers.CssController{})
 	beego.Router("/*.js", &controllers.JsController{})
 	beego.Router("/info", &controllers.InfoController{})
