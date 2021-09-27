@@ -22,7 +22,7 @@
 						<h4 class="modal-title" id="myModalimgbLabel">选择</h4>
 					</div>
 					<div class="modal-body">
-						<selfunc ref="imgb-selfunc"></selfunc>
+						<selfunc ref="imgb_selfunc" @change="conschange"></selfunc>
 						<button type="button" class="btn btn-primary" @click="sure">
 							确定
 						</button>
@@ -32,15 +32,15 @@
 								@current-change="handleCurrentChange"
 								:current-page.sync="currentPage"
 								:page-size="20"
-								layout="total, prev, pager, next"
+								layout="prev, pager, next"
 								:total="total"
 							>
 							</el-pagination>
 						</div>
 						<div style="width: 100%">
 							<div
-								v-for="t in imgs"
-								:key="t.path"
+								v-for="(t, i) in imgs"
+								:key="i"
 								style="display: inline-block; height: auto; width: auto"
 							>
 								<span
@@ -112,10 +112,12 @@ module.exports = {
 			$(".glyphicon-ok-sign").css("visibility", "hidden");
 			$($(event.target).parent().prev()).css("visibility", "");
 			this.selectpic = $(event.target).attr("src");
-			console.log(this.selectpic);
 		},
 		sure() {
-			this.$emit("choosepic", this.selectpic);
+			this.$emit("choosepic", this.selectpic.substring(1));
+		},
+		conschange(val) {
+			//axios 新的条件请求图片
 		},
 	},
 };

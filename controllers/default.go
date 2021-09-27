@@ -144,6 +144,7 @@ type PageCase struct { //特色化案例库页面
 	Page_num      string `json:"page_num"`
 	Detail        string `json:"detail"`
 	Idea          string `json:"idea"`
+	Recorder      string `json:"recorder"`
 	Username      string `json:"username"`
 	Pics          []Pic  `json:"pics"`
 }
@@ -160,14 +161,20 @@ type Ver struct {
 }
 
 type Pic struct {
-	Path string `json:"path"`
-	Bank string `json:"bank"`
-	Ver  string `json:"ver"`
+	Path  string `json:"path"`
+	Bank  string `json:"bank"`
+	Ver   string `json:"ver"`
+	Order int64  `json:"order"` //order本身存储在contain关系里。这里用来传给前端
+	Title string `json:"title"`
 }
 
 type TotalPic struct {
 	Total int64 `json:"total"`
 	Imgs  []Pic `json:"imgs"`
+}
+
+type Contains struct {
+	Order int `json:"order"`
 }
 
 func init() {
@@ -407,14 +414,14 @@ func (c *PicsController) Post() {
 	session := driver.NewSession(neo4j.SessionConfig{})
 	defer session.Close()
 	_, _ = session.WriteTransaction(func(tx neo4j.Transaction) (interface{}, error) {
-		result, err := tx.Run("create(n:Picture{path:$p})", map[string]interface{}{"p": fileName})
+		result, err := tx.Run("create(n:Pic{path:$p})", map[string]interface{}{"p": fileName})
 
 		s := c.GetString("select")
 		ss := strings.Split(s, ",")
 
 		for _, i := range ss {
 			fmt.Println(i)
-			_, err = tx.Run("match (n:Assess{id:$s}),(m:Picture{path:$p}) create (n)-[p:POINTS]->(m)", map[string]interface{}{"s": i, "p": fpath})
+			_, err = tx.Run("match (n:Assess{id:$s}),(m:Pic{path:$p}) create (n)-[p:POINTS]->(m)", map[string]interface{}{"s": i, "p": fpath})
 		}
 		if err != nil {
 			panic(err)
@@ -598,7 +605,6 @@ func (c *TaskController) Post() { //创建任务
 }
 
 func (c *TaskController) Get() { //获取任务列表
-	username := c.GetString("username")
 	page := c.GetString("page")
 	//sort := c.GetString("sort")
 	driver, err := neo4j.NewDriver(dbUri, neo4j.BasicAuth("neo4j", "980115", ""))
@@ -610,7 +616,7 @@ func (c *TaskController) Get() { //获取任务列表
 	defer session.Close()
 	results, _ := session.ReadTransaction(func(tx neo4j.Transaction) (interface{}, error) {
 		pagenum, _ := strconv.Atoi(page)
-		r, err := tx.Run("match (t:Task)<-[r:Control]-(u:User{username:$u}) return t.name as name, t.t as ty, t.created as c, t.modified as m, t.owner as owner order by t.modified desc skip ($page-1)*10 limit 10", map[string]interface{}{"u": username, "page": pagenum})
+		r, err := tx.Run("match (t:Task) return t.name as name, t.t as ty, t.created as c, t.modified as m, t.owner as owner order by t.modified desc skip ($page-1)*10 limit 10", map[string]interface{}{"page": pagenum})
 		if err != nil {
 			panic(err)
 		}
@@ -726,7 +732,7 @@ func (c *PageController) Get() { //changePage ?p=
 			r, err = tx.Run(`match (u:User{username:$user})-[r:Control]->(t:Task{name:$name}),
 		(t)-[i:Include]->(p:Page{order:$order}),
 		(p)-[c:Contains]->(pic:Pic) 
-		return c.order as order,pic.path as path order by pic.order`, map[string]interface{}{"user": user, "name": name, "order": p})
+		return c.order as order,pic.path as path order by order`, map[string]interface{}{"user": user, "name": name, "order": p})
 			if err != nil {
 				panic(err)
 			}
@@ -734,11 +740,12 @@ func (c *PageController) Get() { //changePage ?p=
 				record := r.Record()
 				path, _ := record.Get("path")
 				pathstr, _ := path.(string)
-				obj.Pics = append(obj.Pics, Pic{Path: pathstr})
+				order, _ := record.Get("order")
+				orderint, _ := order.(int64)
+				obj.Pics = append(obj.Pics, Pic{Path: pathstr, Order: orderint})
 			}
 			return obj, nil
 		} else {
-			fmt.Println("进入else")
 			r, err = tx.Run(`match (u:User{username:$user})-[r:Control]->(t:Task{name:$name}),
 			(t)-[i:Include]->(p:Page{order:$order}) 
 			return p.title as title,
@@ -753,6 +760,7 @@ func (c *PageController) Get() { //changePage ?p=
 			p.page_num as page_num,
 			p.detail as detail,
 			p.idea as idea,
+			p.recorder as recorder,
 			p.username as username`, map[string]interface{}{"user": user, "name": name, "order": p})
 			if err != nil {
 				panic(err)
@@ -772,6 +780,7 @@ func (c *PageController) Get() { //changePage ?p=
 				page_num, _ := record.Get("page_num")
 				detail, _ := record.Get("detail")
 				idea, _ := record.Get("idea")
+				recorder, _ := record.Get("recorder")
 				username, _ := record.Get("username")
 				obj.Title, _ = title.(string)
 				obj.Case_num, _ = case_num.(string)
@@ -785,21 +794,26 @@ func (c *PageController) Get() { //changePage ?p=
 				obj.Page_num, _ = page_num.(string)
 				obj.Detail, _ = detail.(string)
 				obj.Idea, _ = idea.(string)
+				obj.Recorder, _ = recorder.(string)
 				obj.Username = username.(string)
 			}
 
 			r, err = tx.Run(`match (u:User{username:$user})-[r:Control]->(t:Task{name:$name}),
 		(t)-[i:Include]->(p:Page{order:$order}),
 		(p)-[c:Contains]->(pic:Pic) 
-		return c.order as order,pic.path as path order by pic.order`, map[string]interface{}{"user": user, "name": name, "order": p})
+		return c.order as order, c.title as title, pic.path as path order by order`, map[string]interface{}{"user": user, "name": name, "order": p})
 			if err != nil {
 				panic(err)
 			}
 			for r.Next() {
 				record := r.Record()
 				path, _ := record.Get("path")
+				order, _ := record.Get("order")
+				orderint, _ := order.(int64)
 				pathstr, _ := path.(string)
-				obj.Pics = append(obj.Pics, Pic{Path: pathstr})
+				title, _ := record.Get("title")
+				titlestr, _ := title.(string)
+				obj.Pics = append(obj.Pics, Pic{Path: pathstr, Order: orderint, Title: titlestr})
 			}
 			return obj, nil
 
@@ -857,6 +871,7 @@ func (c *PageController) Addtoend() {
 			if err != nil {
 				panic(err)
 			}
+
 			return nil, nil
 		})
 	} else {
@@ -869,6 +884,7 @@ func (c *PageController) Addtoend() {
 			if err != nil {
 				panic(err)
 			}
+
 			return nil, nil
 		})
 	}
@@ -894,13 +910,16 @@ func (c *PageController) Addtonext() {
 			panic(err)
 		}
 		_, _ = tx.Run("match (u:User{username:$user})-[r:Control]->(t:Task{name:$name}) set t.totalnum=t.totalnum+1", map[string]interface{}{"name": name, "user": user})
+
 		if t == "1" {
 			_, err = tx.Run("match (u:User{username:$user})-[r:Control]->(t:Task{name:$name}) create (t)-[i:Include]->(p:Page{title:'', order:$order})", map[string]interface{}{"user": user, "name": name, "order": pint + 1})
+
 		} else {
 			s := time.Now().Format("2006-01-02")
 			_, err = tx.Run(`match (n:User{username:$username})-[r:Control]->(t:Task{name:$name}) 
 			create (t)-[i:Include]->(p:Page{order:$order, title:'',case_num:'',product_class:'',name:'',version:'',app_class:'', 
 			date:$d, feature:'', abstract:'', page_name:'', detail:'', idea:'', username:$username})`, map[string]interface{}{"username": user, "name": name, "d": s, "order": pint + 1})
+
 		}
 		if err != nil {
 			panic(err)
@@ -923,7 +942,13 @@ func (c *PageController) DeletePage() {
 	defer session.Close()
 	pint, _ := strconv.Atoi(p)
 	_, _ = session.WriteTransaction(func(tx neo4j.Transaction) (interface{}, error) {
-		_, err := tx.Run("match (u:User{username:$user})-[r:Control]->(t:Task{name:$name}),(t)-[i:Include]->(p:Page{order:$order}) delete i,p", map[string]interface{}{"name": name, "user": user, "order": pint})
+		_, err := tx.Run(`match (u:User{username:$user})-[r:Control]->(t:Task{name:$name}),
+		(t)-[i:Include]->(p:Page{order:$order}),
+		 (p)-[c:Contains]->(pic:Pic) delete c`, map[string]interface{}{"name": name, "user": user, "order": pint})
+		if err != nil {
+			panic(err)
+		}
+		_, err = tx.Run("match (u:User{username:$user})-[r:Control]->(t:Task{name:$name}),(t)-[i:Include]->(p:Page{order:$order}) delete i,p", map[string]interface{}{"name": name, "user": user, "order": pint})
 		if err != nil {
 			panic(err)
 		}
@@ -967,7 +992,7 @@ func (c *MysqlController) Getbv() {
 	c.ServeJSON()
 }
 
-func (c *PageController) Upload_pic() {
+func (c *PageController) Upload_pic() { //特色化案例库页面上传图片
 	f, h, _ := c.GetFile("file") //获取上传的文件
 	ext := path.Ext(h.Filename)
 
@@ -1018,16 +1043,20 @@ func (c *PageController) Upload_pic() {
 		if err != nil {
 			panic(err)
 		}
-		if r.Next() {
+		if r.Next() { //如果原来有图  删除关系
 			_, err = tx.Run("match (u:User{username:$user})-[r:Control]->(t:Task{name:$name}),(t)-[i:Include]->(p:Page{order:$order}),(p)-[c:Contains{order:$rank}]->(pic:Pic) delete c", map[string]interface{}{"user": user, "name": task, "order": pint, "rank": rank})
 			if err != nil {
 				panic(err)
 			}
 		}
+
+		/*创建关系和图片*/
 		_, err = tx.Run("match (u:User{username:$user})-[r:Control]->(t:Task{name:$name}),(t)-[i:Include]->(p:Page{order:$order}) create (p)-[c:Contains{order:$rank}]->(pic:Pic{path:$path,bank:$bank,ver:$ver})", map[string]interface{}{"user": user, "name": task, "order": pint, "path": fileName, "rank": rank, "bank": bank, "ver": ver})
 		if err != nil {
 			panic(err)
 		}
+
+		/*建立与功能模块的关系 implement*/
 		_, err = tx.Run("match (f:Func{name:$name}),(p:Pic{path:$path,bank:$bank,ver:$ver}) create (p)-[i:Implements]->(f)", map[string]interface{}{"name": fun, "path": fileName, "bank": bank, "ver": ver})
 		if err != nil {
 			panic(err)
@@ -1081,23 +1110,182 @@ func (c *PageController) Autosave() {
 		page_num := c.GetString("page_num")
 		detail := c.GetString("detail")
 		idea := c.GetString("idea")
+		recorder := c.GetString("recorder")
+		imgtitle0 := c.GetString("imgtitle0")
+		imgpath0 := c.GetString("imgpath0")
+		imgtitle1 := c.GetString("imgtitle1")
+		imgpath1 := c.GetString("imgpath1")
+		imgtitle2 := c.GetString("imgtitle2")
+		imgpath2 := c.GetString("imgpath2")
+		imgtitle3 := c.GetString("imgtitle3")
+		imgpath3 := c.GetString("imgpath3")
+		imgtitle4 := c.GetString("imgtitle4")
+		imgpath4 := c.GetString("imgpath4")
+
 		fmt.Println(page, title, case_num, product_class, name, version, app_class, feature, abstract, page_num, detail, idea)
 		pint, _ := strconv.Atoi(page)
 		_, _ = session.WriteTransaction(func(tx neo4j.Transaction) (interface{}, error) {
 			_, err := tx.Run(`match (u:User{username:$user})-[r:Control]->(t:Task{name:$task}),
-		(t)-[i:Include]->(p:Page{order:$order}) 
+		(t)-[i:Include]->(p:Page{order:$order})
 		set p.title=$title,p.case_num=$case_num,p.product_class=$product_class,
 		p.name=$name,p.version=$version,
 		p.app_class=$app_class, p.feature=$feature, p.abstract=$abstract,
-		p.page_num=$page_num, p.detail=$detail, p.idea=$idea`,
+		p.page_num=$page_num, p.detail=$detail, p.idea=$idea, p.recorder=$recorder`,
 				map[string]interface{}{"user": user, "task": task, "order": pint, "title": title, "case_num": case_num, "product_class": product_class,
 					"name": name, "version": version, "app_class": app_class, "feature": feature, "abstract": abstract,
-					"page_num": page_num, "detail": detail, "idea": idea})
+					"page_num": page_num, "detail": detail, "idea": idea, "recorder": recorder})
 			if err != nil {
 				panic(err)
 			}
+
+			if imgpath0 != "" {
+				imgpath0 = imgpath0[1:]
+				r, err := tx.Run(`match (u:User{username:$user})-[r:Control]->(t:Task{name:$task}),
+				(t)-[i:Include]->(p:Page{order:$order}),
+				(p)-[c:Contains{order:1}]->(pic:Pic) return pic as pic`, map[string]interface{}{"user": user, "task": task, "order": pint})
+				if err != nil {
+					panic(err)
+				}
+				if r.Next() { //对应位置上已经有了图片，解开关系
+					_, err = tx.Run(`match (u:User{username:$user})-[r:Control]->(t:Task{name:$task}), 
+					(t)-[i:Include]->(p:Page{order:$order}), 
+					(p)-[c:Contains{order:1}]->(pic:Pic) delete c`, map[string]interface{}{"user": user, "task": task, "order": pint})
+					if err != nil {
+						panic(err)
+					}
+				}
+				r, err = tx.Run(`match (p:Pic{path:$path}) return p as pic`, map[string]interface{}{"path": imgpath0})
+				if err != nil {
+					panic(err)
+				}
+				if r.Next() { //如果这张图片已经存在
+					_, err = tx.Run(`match (u:User{username:$user})-[r:Control]->(t:Task{name:$task}), 
+					(t)-[i:Include]->(p:Page{order:$order}), (pic:Pic{path:$path}) create (p)-[c:Contains{title:$title,order:1}]->(pic)`, map[string]interface{}{"user": user, "task": task, "order": pint, "path": imgpath0, "title": imgtitle0})
+					if err != nil {
+						panic(err)
+					}
+				}
+			}
+
+			if imgpath1 != "" {
+				imgpath1 = imgpath1[1:]
+				r, err := tx.Run(`match (u:User{username:$user})-[r:Control]->(t:Task{name:$task}),
+				(t)-[i:Include]->(p:Page{order:$order}),
+				(p)-[c:Contains{order:2}]->(pic:Pic) return pic as pic`, map[string]interface{}{"user": user, "task": task, "order": pint})
+				if err != nil {
+					panic(err)
+				}
+				if r.Next() { //对应位置上已经有了图片，解开关系
+					_, err = tx.Run(`match (u:User{username:$user})-[r:Control]->(t:Task{name:$task}), 
+					(t)-[i:Include]->(p:Page{order:$order}), 
+					(p)-[c:Contains{order:2}]->(pic:Pic) delete c`, map[string]interface{}{"user": user, "task": task, "order": pint})
+					if err != nil {
+						panic(err)
+					}
+				}
+				r, err = tx.Run(`match (p:Pic{path:$path}) return p as pic`, map[string]interface{}{"path": imgpath1})
+				if err != nil {
+					panic(err)
+				}
+				if r.Next() { //如果这张图片已经存在
+					_, err = tx.Run(`match (u:User{username:$user})-[r:Control]->(t:Task{name:$task}), 
+					(t)-[i:Include]->(p:Page{order:$order}), (pic:Pic{path:$path}) create (p)-[c:Contains{title:$title,order:2}]->(pic)`, map[string]interface{}{"user": user, "task": task, "order": pint, "path": imgpath1, "title": imgtitle1})
+					if err != nil {
+						panic(err)
+					}
+				}
+			}
+
+			if imgpath2 != "" {
+				imgpath2 = imgpath2[1:]
+				r, err := tx.Run(`match (u:User{username:$user})-[r:Control]->(t:Task{name:$task}),
+				(t)-[i:Include]->(p:Page{order:$order}),
+				(p)-[c:Contains{order:3}]->(pic:Pic) return pic as pic`, map[string]interface{}{"user": user, "task": task, "order": pint})
+				if err != nil {
+					panic(err)
+				}
+				if r.Next() { //对应位置上已经有了图片，解开关系
+					_, err = tx.Run(`match (u:User{username:$user})-[r:Control]->(t:Task{name:$task}), 
+					(t)-[i:Include]->(p:Page{order:$order}), 
+					(p)-[c:Contains{order:3}]->(pic:Pic) delete c`, map[string]interface{}{"user": user, "task": task, "order": pint})
+					if err != nil {
+						panic(err)
+					}
+				}
+				r, err = tx.Run(`match (p:Pic{path:$path}) return p as pic`, map[string]interface{}{"path": imgpath2})
+				if err != nil {
+					panic(err)
+				}
+				if r.Next() { //如果这张图片已经存在
+					_, err = tx.Run(`match (u:User{username:$user})-[r:Control]->(t:Task{name:$task}), 
+					(t)-[i:Include]->(p:Page{order:$order}), (pic:Pic{path:$path}) create (p)-[c:Contains{title:$title,order:3}]->(pic)`, map[string]interface{}{"user": user, "task": task, "order": pint, "path": imgpath2, "title": imgtitle2})
+					if err != nil {
+						panic(err)
+					}
+				}
+			}
+
+			if imgpath3 != "" {
+				imgpath3 = imgpath3[1:]
+				r, err := tx.Run(`match (u:User{username:$user})-[r:Control]->(t:Task{name:$task}),
+				(t)-[i:Include]->(p:Page{order:$order}),
+				(p)-[c:Contains{order:4}]->(pic:Pic) return pic as pic`, map[string]interface{}{"user": user, "task": task, "order": pint})
+				if err != nil {
+					panic(err)
+				}
+				if r.Next() { //对应位置上已经有了图片，解开关系
+					_, err = tx.Run(`match (u:User{username:$user})-[r:Control]->(t:Task{name:$task}), 
+					(t)-[i:Include]->(p:Page{order:$order}), 
+					(p)-[c:Contains{order:4}]->(pic:Pic) delete c`, map[string]interface{}{"user": user, "task": task, "order": pint})
+					if err != nil {
+						panic(err)
+					}
+				}
+				r, err = tx.Run(`match (p:Pic{path:$path}) return p as pic`, map[string]interface{}{"path": imgpath3})
+				if err != nil {
+					panic(err)
+				}
+				if r.Next() { //如果这张图片已经存在
+					_, err = tx.Run(`match (u:User{username:$user})-[r:Control]->(t:Task{name:$task}), 
+					(t)-[i:Include]->(p:Page{order:$order}), (pic:Pic{path:$path}) create (p)-[c:Contains{title:$title,order:4}]->(pic)`, map[string]interface{}{"user": user, "task": task, "order": pint, "path": imgpath3, "title": imgtitle3})
+					if err != nil {
+						panic(err)
+					}
+				}
+			}
+
+			if imgpath4 != "" {
+				imgpath4 = imgpath4[1:]
+				r, err := tx.Run(`match (u:User{username:$user})-[r:Control]->(t:Task{name:$task}),
+				(t)-[i:Include]->(p:Page{order:$order}),
+				(p)-[c:Contains{order:5}]->(pic:Pic) return pic as pic`, map[string]interface{}{"user": user, "task": task, "order": pint})
+				if err != nil {
+					panic(err)
+				}
+				if r.Next() { //对应位置上已经有了图片，解开关系
+					_, err = tx.Run(`match (u:User{username:$user})-[r:Control]->(t:Task{name:$task}), 
+					(t)-[i:Include]->(p:Page{order:$order}), 
+					(p)-[c:Contains{order:5}]->(pic:Pic) delete c`, map[string]interface{}{"user": user, "task": task, "order": pint})
+					if err != nil {
+						panic(err)
+					}
+				}
+				r, err = tx.Run(`match (p:Pic{path:$path}) return p as pic`, map[string]interface{}{"path": imgpath4})
+				if err != nil {
+					panic(err)
+				}
+				if r.Next() { //如果这张图片已经存在
+					_, err = tx.Run(`match (u:User{username:$user})-[r:Control]->(t:Task{name:$task}), 
+					(t)-[i:Include]->(p:Page{order:$order}), (pic:Pic{path:$path}) create (p)-[c:Contains{title:$title,order:5}]->(pic)`, map[string]interface{}{"user": user, "task": task, "order": pint, "path": imgpath4, "title": imgtitle4})
+					if err != nil {
+						panic(err)
+					}
+				}
+			}
+
 			return nil, nil
 		})
+
 	}
 	c.Ctx.WriteString("success")
 }

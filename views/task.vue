@@ -114,7 +114,12 @@
 						</tr>
 					</thead>
 					<tbody>
-						<tr v-for="item in tasks" @click="choose_task" :name="item.name">
+						<tr
+							v-for="item in tasks"
+							@click="choose_task"
+							:key="item.name"
+							:name="item.name"
+						>
 							<td>{{ item.name }}</td>
 							<td>{{ item.created }}</td>
 							<td>{{ item.modified }}</td>
@@ -124,7 +129,9 @@
 								<span v-else>特色化案例库</span>
 							</td>
 							<td>
+								<!--拥有者和当前用户不一致，不显示删除-->
 								<button
+									v-if="this.username === item.owner"
 									class="btn btn-sm btn-warning"
 									@click.stop="delete_task"
 									:name="item.name"
