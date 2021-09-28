@@ -95,7 +95,10 @@
             </span>
             <div style="width: auto;height: auto;float: right">
                 <span>你好，{{username}}</span>
-                <span class="glyphicon glyphicon-user"></span>
+                <el-popover placement="top-start" :title="username" width="200" trigger="hover" content="">
+                    <el-button type="danger" @click="logout">登出</el-button>
+                    <el-button slot="reference" circle><i class="el-icon-user"></i></el-button>
+                </el-popover>
             </div>
         </div>
         <div class="panel-body" id="body">
@@ -176,13 +179,21 @@
 
     const header = new Vue({
         el: "#header",
+        created: function () {
+        },
         computed: {
             username: function () {
-                let str = document.cookie.split(";")[2];
+                let str = document.cookie.split(";")[1];
                 let index = str.search("=");
                 return str.substring(index + 1);
+            },
+        },
+        methods: {
+            logout: function () {
+                document.cookie = "username='';password='';expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+                window.location.href = "/signin.html";
             }
-        }
+        },
     })
 
 </script>

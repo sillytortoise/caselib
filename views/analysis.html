@@ -178,71 +178,82 @@
                 </table>
             </div>
             <div class="panel-body">
-                <table style="height: 100%;width: 100%;">
+                <table style="height: 100%;width: 100%;" class="table table-bordered">
                     <thead style="height: 10%;">
                         <tr>
                             <th
                                 style="border: solid 1px white;width: 20%;background-color: rgb(204, 102, 0);color: white;">
-                                <input name="imgname" placeholder="输入名称" @change="autosave" style="width:100%" />
+                                <input id="img-title0" placeholder="输入名称" :value="info.pics[0].title" @change="autosave"
+                                    style="width:100%" />
                             </th>
                             <th
                                 style="border: solid 1px white;width: 20%;background-color: rgb(14, 108, 141);color: white;">
-                                同业参考：</th>
+                                同业参考：<input id="img-title1" :value="info.pics[1].title" @change="autosave"
+                                    style="width:50%" /></th>
                             <th
                                 style="border: solid 1px white;width: 20%;background-color: rgb(14, 108, 141);color: white;">
-                                同业参考：</th>
+                                同业参考：<input id="img-title2" :value="info.pics[2].title" @change="autosave"
+                                    style="width:50%" /></th>
                             <th
                                 style="border: solid 1px white;width: 20%;background-color: rgb(14, 108, 141);color: white;">
-                                同业参考：</th>
+                                同业参考：<input id="img-title3" :value="info.pics[3].title" @change="autosave"
+                                    style="width:50%" /></th>
                             <th
                                 style="border: solid 1px white;width: 20%;background-color: rgb(14, 108, 141);color: white;">
-                                同业参考：</th>
+                                同业参考：<input id="img-title4" :value="info.pics[4].title" @change="autosave"
+                                    style="width:50%" /></th>
                         </tr>
                     </thead>
                     <tbody style="height: 90%;">
                         <tr style="height:100%;">
                             <td style="height:100%;border: solid 1px white;"><img id="img0"
-                                    :src="'/'+(info.pics.length>0?info.pics[0].path:'')" />
+                                    :src="info.pics[0].path==''?'':('/'+info.pics[0].path)" @change="autosave" />
                             </td>
-                            <td style="height:100%;border: solid 1px white;"><img id="img1"
-                                    :src="'/'+(info.pics.length>1?info.pics[1].path:'')" />
+                            <td style=" height:100%;border: solid 1px white;"><img id="img1"
+                                    :src="info.pics[1].path==''?'':('/'+info.pics[1].path)" @change="autosave" />
                             </td>
-                            <td style="height:100%;border: solid 1px white;"><img id="img2"
-                                    :src="'/'+(info.pics.length>2?info.pics[2].path:'')" />
+                            <td style=" height:100%;border: solid 1px white;"><img id="img2"
+                                    :src="info.pics[2].path==''?'':('/'+info.pics[2].path)" @change="autosave" />
                             </td>
-                            <td style="height:100%;border: solid 1px white;"><img id="img3"
-                                    :src="'/'+(info.pics.length>3?info.pics[3].path:'')" />
+                            <td style=" height:100%;border: solid 1px white;"><img id="img3"
+                                    :src="info.pics[3].path==''?'':('/'+info.pics[3].path)" @change="autosave" />
                             </td>
-                            <td style="height:100%;border: solid 1px white;"><img id="img4"
-                                    :src="'/'+(info.pics.length>4?info.pics[4].path:'')" />
+                            <td style=" height:100%;border: solid 1px white;"><img id="img4"
+                                    :src="info.pics[4].path==''?'':('/'+info.pics[4].path)" @change="autosave" />
                             </td>
                         </tr>
                     </tbody>
                 </table>
-                <div id="imgsel" class="well well-lg" style="position: relative; top:20px;height:100px;padding: 10px;">
+                <div id=" imgsel" class="well well-lg" style="position: relative; top:20px;height:100px;padding: 10px;">
                     <div style="width: 20%;height:150px;display: inline;float: left;">
                         <el-button type="primary" size="small" @click="beforeUpload" round><span
-                                class="glyphicon glyphicon-cloud-upload">上传</span></el-button>
+                                class="glyphicon glyphicon-cloud-upload"> 上传</span></el-button>
+                        <el-button type="success" size="small" @click="openBrowser" round><span
+                                class="glyphicon glyphicon-folder-open"> 浏览</span></el-button>
                     </div>
                     <div style="width: 20%;display: inline;float: left;">
                         <el-button type="primary" size="small" @click="beforeUpload" round><span
-                                class="glyphicon glyphicon-cloud-upload">上传</span></el-button>
-                        <imgbrowser></imgbrowser>
+                                class="glyphicon glyphicon-cloud-upload"> 上传</span></el-button>
+                        <el-button type="success" size="small" @click="openBrowser" round><span
+                                class="glyphicon glyphicon-folder-open"> 浏览</span></el-button>
                     </div>
                     <div style="width: 20%;display: inline;float: left;">
                         <el-button type="primary" size="small" @click="beforeUpload" round><span
-                                class="glyphicon glyphicon-cloud-upload">上传</span></el-button>
-                        <imgbrowser></imgbrowser>
+                                class="glyphicon glyphicon-cloud-upload"> 上传</span></el-button>
+                        <el-button type="success" size="small" @click="openBrowser" round><span
+                                class="glyphicon glyphicon-folder-open"> 浏览</span></el-button>
                     </div>
                     <div style="width: 20%;display: inline;float: left;">
                         <el-button type="primary" size="small" @click="beforeUpload" round><span
-                                class="glyphicon glyphicon-cloud-upload">上传</span></el-button>
-                        <imgbrowser></imgbrowser>
+                                class="glyphicon glyphicon-cloud-upload"> 上传</span></el-button>
+                        <el-button type="success" size="small" @click="openBrowser" round><span
+                                class="glyphicon glyphicon-folder-open"> 浏览</span></el-button>
                     </div>
                     <div style="width: 20%;display: inline;float: left;">
                         <el-button type="primary" size="small" @click="beforeUpload" round><span
-                                class="glyphicon glyphicon-cloud-upload">上传</span></el-button>
-                        <imgbrowser></imgbrowser>
+                                class="glyphicon glyphicon-cloud-upload"> 上传</span></el-button>
+                        <el-button type="success" size="small" @click="openBrowser" round><span
+                                class="glyphicon glyphicon-folder-open"> 浏览</span></el-button>
                     </div>
                 </div>
             </div>
@@ -269,6 +280,8 @@
                 </div>
             </div>
         </div>
+
+        <imgbrowser @choosepic="setpic"></imgbrowser>
 
         <!-- Modal 选择指标-->
         <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
@@ -328,13 +341,9 @@
             chg: function (value) {
                 this.targetid = value[1];
                 axios.get(`/info?id=${value[1]}`).then((res) => {
-                    console.log(res.data);
-                    console.log(this.info.target);
                     this.$set(this.info, 'target', res.data.target);
                     this.$set(this.info, 'p', res.data.p);
                     this.$set(this.info, 't', res.data.t);
-                    this.$set(this.info, "pics", res.data.pics)
-                    console.log(this.info);
                     $("#myModal").modal('hide');
                     this.autosave();
                 });
@@ -343,16 +352,14 @@
                 $('#selimg').modal();
             },
             changepage: function (value) {
-                axios.get(`${this.task_name}?p=${value}`).then(res => {
+                axios.get(`${this.task_name}?type=1&p=${value}`).then(res => {
                     let obj = new Object();
                     obj.title = res.data.title;
                     obj.target = res.data.target;
                     obj.problem = res.data.problem;
                     obj.advice = res.data.advice;
                     obj.pics = res.data.pics;
-                    if (obj.pics == undefined) {
-                        obj.pics = [{ order: 0, path: "" }, { order: 1, path: "" }, { order: 2, path: "" }, { order: 3, path: "" }, { order: 4, path: "" }];
-                    }
+                    obj.pics = [{ order: 0, path: "" }, { order: 1, path: "" }, { order: 2, path: "" }, { order: 3, path: "" }, { order: 4, path: "" }];
                     obj.p = "";
                     obj.t = "";
                     this.targetid = res.data.target;
@@ -363,8 +370,13 @@
                         obj.target = r.data.target;
                         obj.p = r.data.p;
                         obj.t = r.data.t;
+                        if (res.data.pics != undefined) {
+                            for (let pic of res.data.pics) {
+                                obj.pics[pic.order - 1].path = pic.path;
+                                obj.pics[pic.order - 1].title = pic.title;
+                            }
+                        }
                         this.info = obj;
-                        console.log(this.info);
                         this.currentPage = value;
                     });
                 })
@@ -424,9 +436,7 @@
             },
             upload: function () {
                 this.$refs.myuploader.submitUpload();
-                console.log(this.whichtoupload);
-                console.log(this.selvalue);
-
+                $("#img" + this.whichtoupload).attr("src", this.$refs.myuploader.fileList[0].url);
             },
             selchange: function (value) {
                 this.selvalue.func = value[0];
@@ -436,14 +446,22 @@
             autosave: function () {
                 $.ajax({
                     type: 'POST',
-                    url: `${window.location.pathname.split("/")[2]}/autosave?p=${app.currentPage}&type=1`,
+                    url: `${this.task_name}/autosave?p=${app.currentPage}&type=1`,
                     data: {
                         targetid: this.targetid,
                         title: $("input[name='title']").val(),
                         problem: $("input[name='problem']").val(),
                         advice: $("input[name='advice']").val(),
-                        imgname: $("input[name='imgname']").val(),
-                        p: this.currentPage
+                        imgtitle0: $("#img-title0").val(),
+                        imgpath0: $("#img0").attr("src"),
+                        imgtitle1: $("#img-title1").val(),
+                        imgpath1: $("#img1").attr("src"),
+                        imgtitle2: $("#img-title2").val(),
+                        imgpath2: $("#img2").attr("src"),
+                        imgtitle3: $("#img-title3").val(),
+                        imgpath3: $("#img3").attr("src"),
+                        imgtitle4: $("#img-title4").val(),
+                        imgpath4: $("#img4").attr("src"),
                     },
                     success: function () {
                         app.$message({
@@ -456,7 +474,21 @@
             },
             getpics: function () {
 
-            }
+            },
+            setpic: function (val) {
+                $("#img" + this.whichtoupload).attr('src', '/' + val);
+                $("#myModalimgb").modal('hide');
+                this.autosave();
+            },
+            openBrowser: function (event) {
+                $("#myModalimgb").modal();
+                if (event.target.tagName == 'SPAN') {
+                    this.whichtoupload = $(event.target).parents('button').index('.el-button--success');
+                }
+                else {
+                    this.whichtoupload = $(event.target).index('.el-button--success');
+                }
+            },
         }
     })
 

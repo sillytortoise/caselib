@@ -267,33 +267,33 @@
                 <div id="imgsel" class="well well-lg" style="position: relative; top:20px;height:100px;padding: 10px;">
                     <div style="width: 20%;height:150px;display: inline;float: left;">
                         <el-button type="primary" size="small" @click="beforeUpload" round><span
-                                class="glyphicon glyphicon-cloud-upload">上传</span></el-button>
+                                class="glyphicon glyphicon-cloud-upload"> 上传</span></el-button>
                         <el-button type="success" size="small" @click="openBrowser" round><span
-                                class="glyphicon glyphicon-folder-open">浏览</span></el-button>
+                                class="glyphicon glyphicon-folder-open"> 浏览</span></el-button>
                     </div>
                     <div style="width: 20%;display: inline;float: left;">
                         <el-button type="primary" size="small" @click="beforeUpload" round><span
-                                class="glyphicon glyphicon-cloud-upload">上传</span></el-button>
+                                class="glyphicon glyphicon-cloud-upload"> 上传</span></el-button>
                         <el-button type="success" size="small" @click="openBrowser" round><span
-                                class="glyphicon glyphicon-folder-open">浏览</span></el-button>
+                                class="glyphicon glyphicon-folder-open"> 浏览</span></el-button>
                     </div>
                     <div style="width: 20%;display: inline;float: left;">
                         <el-button type="primary" size="small" @click="beforeUpload" round><span
-                                class="glyphicon glyphicon-cloud-upload">上传</span></el-button>
+                                class="glyphicon glyphicon-cloud-upload"> 上传</span></el-button>
                         <el-button type="success" size="small" @click="openBrowser" round><span
-                                class="glyphicon glyphicon-folder-open">浏览</span></el-button>
+                                class="glyphicon glyphicon-folder-open"> 浏览</span></el-button>
                     </div>
                     <div style="width: 20%;display: inline;float: left;">
                         <el-button type="primary" size="small" @click="beforeUpload" round><span
-                                class="glyphicon glyphicon-cloud-upload">上传</span></el-button>
+                                class="glyphicon glyphicon-cloud-upload"> 上传</span></el-button>
                         <el-button type="success" size="small" @click="openBrowser" round><span
-                                class="glyphicon glyphicon-folder-open">浏览</span></el-button>
+                                class="glyphicon glyphicon-folder-open"> 浏览</span></el-button>
                     </div>
                     <div style="width: 20%;display: inline;float: left;">
                         <el-button type="primary" size="small" @click="beforeUpload" round><span
-                                class="glyphicon glyphicon-cloud-upload">上传</span></el-button>
+                                class="glyphicon glyphicon-cloud-upload"> 上传</span></el-button>
                         <el-button type="success" size="small" @click="openBrowser" round><span
-                                class="glyphicon glyphicon-folder-open">浏览</span></el-button>
+                                class="glyphicon glyphicon-folder-open"> 浏览</span></el-button>
                     </div>
                 </div>
             </div>
@@ -396,7 +396,6 @@
                     }
                     this.info = obj;
                     this.currentPage = value;
-                    console.log(this.info);
                 })
             },
             addtoend: function () {
@@ -444,7 +443,6 @@
                 }
             },
             autosave: function () {
-                console.log($("#img-title0").val());
                 $.ajax({
                     type: 'POST',
                     url: `${app.task_name}/autosave?p=${app.currentPage}&type=2`,
@@ -485,12 +483,11 @@
             beforeUpload: function (event) {
                 $("#selcontainer").modal();
                 if (event.target.tagName == 'SPAN') {
-                    this.whichtoupload = $(event.target).parents('button').index('.el-button--primary')
+                    this.whichtoupload = $(event.target).parents('button').index('.el-button--primary');
                 }
                 else {
                     this.whichtoupload = $(event.target).index('.el-button--primary');
                 }
-                console.log(this.whichtoupload);
             },
             selchange: function (value) {
                 this.selvalue.func = value[0];
@@ -499,8 +496,7 @@
             },
             upload: function () {
                 this.$refs.myuploader.submitUpload();
-                this.sleep(500);
-                this.changepage(this.currentPage);
+                $("#img" + this.whichtoupload).attr("src", this.$refs.myuploader.fileList[0].url);
             },
             sleep: function (milli) {
                 let start = new Date().getTime();
@@ -520,7 +516,6 @@
                 $("#img" + this.whichtoupload).attr('src', '/' + val);
                 $("#myModalimgb").modal('hide');
                 this.autosave();
-
             }
         },
     })

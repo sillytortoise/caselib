@@ -177,7 +177,7 @@ module.exports = {
 	},
 	computed: {
 		username: function () {
-			let str = document.cookie.split(";")[2];
+			let str = document.cookie.split(";")[1];
 			let index = str.search("=");
 			return str.substring(index + 1);
 		},
