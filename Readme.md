@@ -2,7 +2,7 @@
 
 ## 1. 数据库实体
 
-![数据库对象设计](C:\Users\steve\Desktop\特色化案例库\数据库对象设计.png)
+![数据库对象设计](https://github.com/sillytortoise/caselib/blob/master/%E6%95%B0%E6%8D%AE%E5%BA%93%E5%AF%B9%E8%B1%A1%E8%AE%BE%E8%AE%A1.png?raw=true)
 
 
 
