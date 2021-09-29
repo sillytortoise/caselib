@@ -109,15 +109,7 @@
                     </a>
                 </li>
                 <li><a href="#assess" data-toggle="tab">测评指标</a></li>
-                <li class="dropdown">
-                    <a href="#" id="myTabDrop1" class="dropdown-toggle" data-toggle="dropdown">图片管理
-                        <b class="caret"></b>
-                    </a>
-                    <ul class="dropdown-menu" role="menu" aria-labelledby="myTabDrop1">
-                        <li><a href="#piclib" tabindex="-1" data-toggle="tab">图片上传</a></li>
-                        <li><a href="#ejb" tabindex="-1" data-toggle="tab">编辑</a></li>
-                    </ul>
-                </li>
+                <li><a href="#piclib" data-toggle="tab">图片上传</a></li>
                 <li class="dropdown">
                     <a href="#" id="myTabDrop2" class="dropdown-toggle" data-toggle="dropdown">案例库
                         <b class="caret"></b>
@@ -137,7 +129,6 @@
                 </div>
                 <div class="tab-pane fade" id="piclib">
                     <pics></pics>
-
                 </div>
                 <div class="tab-pane fade" id="jmeter">
                     <p>jMeter 是一款开源的测试软件。它是 100% 纯 Java 应用程序，用于负载和性能测试。</p>
@@ -183,10 +174,12 @@
         },
         computed: {
             username: function () {
-                let str = document.cookie.split(";")[1];
-                let index = str.search("=");
-                return str.substring(index + 1);
-            },
+                var arr, reg = new RegExp("(^| )username=([^;]*)(;|$)");
+                if (arr = document.cookie.match(reg))
+                    return unescape(arr[2]);
+                else
+                    return null;
+            }
         },
         methods: {
             logout: function () {

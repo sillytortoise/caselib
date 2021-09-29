@@ -31,11 +31,14 @@
 		<div class="panel panel-default">
 			<div class="panel-body">
 				<ul id="upload-list" class="list-group">
-					<li v-for="item in fileList" class="list-group-item">
+					<li v-for="item in fileList" class="list-group-item" :key="item.url">
 						{{ item.name }}
-						<label v-for="l in item.labels" class="label label-default">{{
-							l
-						}}</label>
+						<label
+							v-for="l in item.labels"
+							class="label label-default"
+							:key="l"
+							>{{ l }}</label
+						>
 						<span class="glyphicon glyphicon-remove" @click="removeItem"></span>
 					</li>
 				</ul>

@@ -182,7 +182,6 @@ func init() {
 }
 
 func (c *MainController) Get() {
-	fmt.Println(c.Ctx.GetCookie("username"))
 	if c.Ctx.GetCookie("username") == "" {
 		c.TplName = "signin.html"
 	} else {
@@ -260,7 +259,6 @@ func (c *RegisterController) Post() {
 		}
 	})
 	flag, _ := result.(int)
-	fmt.Println(flag)
 	if flag == 0 {
 		c.Ctx.WriteString("0")
 	} else {
@@ -339,7 +337,6 @@ func (c *Modlevel1Controller) Post() {
 	defer session.Close()
 	reg1 := regexp.MustCompile(`[0-9]+`)
 	if reg1 == nil {
-		fmt.Println("regexp err")
 		return
 	}
 
@@ -423,7 +420,6 @@ func (c *PicsController) Post() {
 		ss := strings.Split(s, ",")
 
 		for _, i := range ss {
-			fmt.Println(i)
 			_, err = tx.Run("match (n:Assess{id:$s}),(m:Pic{path:$p}) create (n)-[p:POINTS]->(m)", map[string]interface{}{"s": i, "p": fpath})
 		}
 		if err != nil {
@@ -492,7 +488,6 @@ func (c *InfoController) Get() {
 		return
 	}
 	id := c.GetString("id")
-	fmt.Println(id)
 	driver, err := neo4j.NewDriver(dbUri, neo4j.BasicAuth("neo4j", "980115", ""))
 	if err != nil {
 		panic(err)
@@ -619,7 +614,8 @@ func (c *TaskController) Get() { //获取任务列表
 		return
 	}
 	page := c.GetString("page")
-	//sort := c.GetString("sort")
+	sort := c.GetString("sort")   //排序依据 created or modified
+	order := c.GetString("order") //升序 asc 降序 desc
 	driver, err := neo4j.NewDriver(dbUri, neo4j.BasicAuth("neo4j", "980115", ""))
 	if err != nil {
 		panic(err)
@@ -629,7 +625,11 @@ func (c *TaskController) Get() { //获取任务列表
 	defer session.Close()
 	results, _ := session.ReadTransaction(func(tx neo4j.Transaction) (interface{}, error) {
 		pagenum, _ := strconv.Atoi(page)
-		r, err := tx.Run("match (t:Task) return t.name as name, t.t as ty, t.created as c, t.modified as m, t.owner as owner order by t.modified desc skip ($page-1)*10 limit 10", map[string]interface{}{"page": pagenum})
+		r, err := tx.Run(`match (t:Task) return t.name as name, 
+		t.t as ty, t.created as c, 
+		t.modified as m, 
+		t.owner as owner order by t.`+sort+" "+order+` skip ($page-1)*10 limit 10`,
+			map[string]interface{}{"page": pagenum})
 		if err != nil {
 			panic(err)
 		}
@@ -695,11 +695,18 @@ func (c *TaskController) Delete() {
 	session := driver.NewSession(neo4j.SessionConfig{})
 	defer session.Close()
 	_, _ = session.WriteTransaction(func(tx neo4j.Transaction) (interface{}, error) {
-		r, err := tx.Run("match (t:Task{name:$name})<-[r:Control]-(u:User{username:$username}), (t)-[i:Include]->(p:Page) delete r,i,p,t", map[string]interface{}{"name": task_name, "username": username})
+		_, err := tx.Run(`match (t:Task{name:$name})<-[r:Control]-(u:User{username:$username}), 
+		(t)-[i:Include]->(p:Page), (p)-[c:Contains]->(pic:Pic)  
+		delete c`,
+			map[string]interface{}{"name": task_name, "username": username})
 		if err != nil {
 			panic(err)
 		}
-		return r, err
+		_, err = tx.Run(`match (t:Task{name:$name})<-[r:Control]-(u:User{username:$username}), 
+		(t)-[i:Include]->(p:Page) 
+		delete r,i,t,p`,
+			map[string]interface{}{"name": task_name, "username": username})
+		return nil, err
 	})
 	c.Ctx.WriteString("1")
 }
@@ -1105,7 +1112,6 @@ func (c *PageController) Upload_pic() { //竞品分析&特色化案例库页面�
 	rank, _ := strconv.Atoi(p)
 
 	_, _ = session.WriteTransaction(func(tx neo4j.Transaction) (interface{}, error) {
-		fmt.Println(user, task, pint, rank)
 		r, err := tx.Run("match (u:User{username:$user})-[r:Control]->(t:Task{name:$name}),(t)-[i:Include]->(p:Page{order:$order}),(p)-[c:Contains{order:$rank}]->(pic:Pic) return pic as pi", map[string]interface{}{"user": user, "name": task, "order": pint, "rank": rank + 1})
 		if err != nil {
 			panic(err)
@@ -1146,6 +1152,7 @@ func (c *PageController) Autosave() {
 	page := c.GetString("p")
 	pint, _ := strconv.Atoi(page)
 
+	title := c.GetString("title")
 	imgtitle0 := c.GetString("imgtitle0")
 	imgpath0 := c.GetString("imgpath0")
 	imgtitle1 := c.GetString("imgtitle1")
@@ -1156,6 +1163,8 @@ func (c *PageController) Autosave() {
 	imgpath3 := c.GetString("imgpath3")
 	imgtitle4 := c.GetString("imgtitle4")
 	imgpath4 := c.GetString("imgpath4")
+
+	modified := time.Unix(time.Now().Unix(), 0).Format("2006-01-02 15:04:05")
 	driver, err := neo4j.NewDriver(dbUri, neo4j.BasicAuth("neo4j", "980115", ""))
 	if err != nil {
 		panic(err)
@@ -1165,18 +1174,15 @@ func (c *PageController) Autosave() {
 	defer session.Close()
 
 	if t == "1" { //竞品分析
-		title := c.GetString("title")
 		problem := c.GetString("problem")
 		advice := c.GetString("advice")
 		targetid := c.GetString("targetid")
 
-		fmt.Println(title, problem, advice, targetid, pint)
-
 		_, _ = session.WriteTransaction(func(tx neo4j.Transaction) (interface{}, error) {
 			_, err := tx.Run(`match (u:User{username:$user})-[r:Control]->(t:Task{name:$name}),
 			(t)-[i:Include]->(p:Page{order:$order}) 
-			set p.title=$title,p.problem=$problem,p.advice=$advice,p.targetid=$targetid`,
-				map[string]interface{}{"user": user, "name": task, "order": pint, "title": title, "problem": problem, "advice": advice, "targetid": targetid})
+			set p.title=$title,p.problem=$problem,p.advice=$advice,p.targetid=$targetid,t.modified=$modified`,
+				map[string]interface{}{"user": user, "name": task, "order": pint, "title": title, "problem": problem, "advice": advice, "targetid": targetid, "modified": modified})
 			if err != nil {
 				panic(err)
 			}
@@ -1184,7 +1190,6 @@ func (c *PageController) Autosave() {
 			return nil, nil
 		})
 	} else { //特色化案例库
-		title := c.GetString("title")
 		case_num := c.GetString("case_num")
 		product_class := c.GetString("product_class")
 		name := c.GetString("name")
@@ -1203,10 +1208,10 @@ func (c *PageController) Autosave() {
 		set p.title=$title,p.case_num=$case_num,p.product_class=$product_class,
 		p.name=$name,p.version=$version,
 		p.app_class=$app_class, p.feature=$feature, p.abstract=$abstract,
-		p.page_num=$page_num, p.detail=$detail, p.idea=$idea, p.recorder=$recorder`,
+		p.page_num=$page_num, p.detail=$detail, p.idea=$idea, p.recorder=$recorder, t.modified=$modified`,
 				map[string]interface{}{"user": user, "task": task, "order": pint, "title": title, "case_num": case_num, "product_class": product_class,
 					"name": name, "version": version, "app_class": app_class, "feature": feature, "abstract": abstract,
-					"page_num": page_num, "detail": detail, "idea": idea, "recorder": recorder})
+					"page_num": page_num, "detail": detail, "idea": idea, "recorder": recorder, "modified": modified})
 			if err != nil {
 				panic(err)
 			}
@@ -1239,10 +1244,18 @@ func (c *PageController) Autosave() {
 			}
 			if r.Next() { //如果这张图片已经存在
 				_, err = tx.Run(`match (u:User{username:$user})-[r:Control]->(t:Task{name:$task}), 
-			(t)-[i:Include]->(p:Page{order:$order}), (pic:Pic{path:$path}) create (p)-[c:Contains{title:$title,order:1}]->(pic)`, map[string]interface{}{"user": user, "task": task, "order": pint, "path": imgpath0, "title": imgtitle0})
+			(t)-[i:Include]->(p:Page{order:$order}), (pic:Pic{path:$path}) create (p)-[c:Contains{title:$title,order:1}]->(pic)`,
+					map[string]interface{}{"user": user, "task": task, "order": pint, "path": imgpath0, "title": imgtitle0})
 				if err != nil {
 					panic(err)
 				}
+			}
+		} else { //删除图片，解除关系
+			_, err := tx.Run(`match (u:User{username:$user})-[r:Control]->(t:Task{name:$task}), 
+			(t)-[i:Include]->(p:Page{order:$order}),(p)-[c:Contains{order:1}]->(pic:Pic) delete c`,
+				map[string]interface{}{"user": user, "task": task, "order": pint})
+			if err != nil {
+				panic(err)
 			}
 		}
 
@@ -1273,6 +1286,13 @@ func (c *PageController) Autosave() {
 					panic(err)
 				}
 			}
+		} else { //删除图片，解除关系
+			_, err := tx.Run(`match (u:User{username:$user})-[r:Control]->(t:Task{name:$task}), 
+			(t)-[i:Include]->(p:Page{order:$order}),(p)-[c:Contains{order:2}]->(pic:Pic) delete c`,
+				map[string]interface{}{"user": user, "task": task, "order": pint})
+			if err != nil {
+				panic(err)
+			}
 		}
 
 		if imgpath2 != "" {
@@ -1301,6 +1321,13 @@ func (c *PageController) Autosave() {
 				if err != nil {
 					panic(err)
 				}
+			}
+		} else { //删除图片，解除关系
+			_, err := tx.Run(`match (u:User{username:$user})-[r:Control]->(t:Task{name:$task}), 
+			(t)-[i:Include]->(p:Page{order:$order}),(p)-[c:Contains{order:3}]->(pic:Pic) delete c`,
+				map[string]interface{}{"user": user, "task": task, "order": pint})
+			if err != nil {
+				panic(err)
 			}
 		}
 
@@ -1331,6 +1358,13 @@ func (c *PageController) Autosave() {
 					panic(err)
 				}
 			}
+		} else { //删除图片，解除关系
+			_, err := tx.Run(`match (u:User{username:$user})-[r:Control]->(t:Task{name:$task}), 
+			(t)-[i:Include]->(p:Page{order:$order}),(p)-[c:Contains{order:4}]->(pic:Pic) delete c`,
+				map[string]interface{}{"user": user, "task": task, "order": pint})
+			if err != nil {
+				panic(err)
+			}
 		}
 
 		if imgpath4 != "" {
@@ -1359,6 +1393,13 @@ func (c *PageController) Autosave() {
 				if err != nil {
 					panic(err)
 				}
+			}
+		} else { //删除图片，解除关系
+			_, err := tx.Run(`match (u:User{username:$user})-[r:Control]->(t:Task{name:$task}), 
+			(t)-[i:Include]->(p:Page{order:$order}),(p)-[c:Contains{order:5}]->(pic:Pic) delete c`,
+				map[string]interface{}{"user": user, "task": task, "order": pint})
+			if err != nil {
+				panic(err)
 			}
 		}
 		return nil, nil

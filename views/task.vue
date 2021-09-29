@@ -96,7 +96,7 @@
 		<div class="panel panel-default" style="height: 100%; text-align: center">
 			<div
 				class="panel-body container"
-				style="text-align: center; width: 95%; height: 650px"
+				style="text-align: center; width: 95%; height: 600px"
 			>
 				<table
 					v-loading="loading"
@@ -131,7 +131,7 @@
 							<td>
 								<!--拥有者和当前用户不一致，不显示删除-->
 								<button
-									v-if="this.username === item.owner"
+									v-if="username === item.owner"
 									class="btn btn-sm btn-warning"
 									@click.stop="delete_task"
 									:name="item.name"
@@ -169,6 +169,8 @@ module.exports = {
 			totalnum: 0,
 			tasks: null,
 			loading: true,
+			sort: "modified",
+			order: "desc",
 		};
 	},
 	emits: ["changePage"],
@@ -177,9 +179,10 @@ module.exports = {
 	},
 	computed: {
 		username: function () {
-			let str = document.cookie.split(";")[1];
-			let index = str.search("=");
-			return str.substring(index + 1);
+			var arr,
+				reg = new RegExp("(^| )username=([^;]*)(;|$)");
+			if ((arr = document.cookie.match(reg))) return unescape(arr[2]);
+			else return null;
 		},
 	},
 	methods: {
@@ -211,7 +214,7 @@ module.exports = {
 						duration: 2000,
 					});
 					this.totalnum += 1;
-					this.get_tasks(this.currentPage);
+					this.get_tasks(this.currentPage, "modified", "desc");
 				} else {
 					this.$message({
 						showClose: true,
@@ -225,13 +228,15 @@ module.exports = {
 		get_total: function () {
 			axios.get(`/gettotal?username=${this.username}`).then((res) => {
 				this.totalnum = res.data;
-				this.get_tasks(1);
+				this.get_tasks(1, "modified", "desc");
 			});
 		},
-		get_tasks: function (p) {
+		get_tasks: function (p, sort, order) {
 			this.loading = true;
 			axios
-				.get(`/gettasks?username=${this.username}&page=${p}&sort=lastmodified`)
+				.get(
+					`/gettasks?username=${this.username}&page=${p}&sort=${sort}&order=${order}`
+				)
 				.then((res) => {
 					this.tasks = res.data;
 					this.loading = false;
@@ -254,6 +259,9 @@ module.exports = {
 						.children()
 						.first()
 						.addClass("glyphicon-sort-by-attributes-alt");
+					this.get_tasks(this.currentPage, "created", "desc");
+					this.sort = "created";
+					this.order = "desc";
 				} else {
 					$(event.target)
 						.children()
@@ -263,6 +271,9 @@ module.exports = {
 						.children()
 						.first()
 						.addClass("glyphicon-sort-by-attributes");
+					this.get_tasks(this.currentPage, "created", "asc");
+					this.sort = "created";
+					this.order = "asc";
 				}
 			}
 			$(event.target).removeClass("btn-default");
@@ -283,6 +294,9 @@ module.exports = {
 						.children()
 						.first()
 						.addClass("glyphicon-sort-by-attributes-alt");
+					this.get_tasks(this.currentPage, "modified", "desc");
+					this.sort = "modified";
+					this.order = "desc";
 				} else {
 					$(event.target)
 						.children()
@@ -292,6 +306,9 @@ module.exports = {
 						.children()
 						.first()
 						.addClass("glyphicon-sort-by-attributes");
+					this.get_tasks(this.currentPage, "modified", "asc");
+					this.sort = "modified";
+					this.order = "asc";
 				}
 			}
 
@@ -319,7 +336,7 @@ module.exports = {
 							duration: 2000,
 						});
 						this.totalnum--;
-						this.get_tasks(this.currentPage);
+						this.get_tasks(this.currentPage, this.sort, this.order);
 					} else {
 						this.$message({
 							showClose: true,

@@ -35,5 +35,4 @@ func init() {
 	beego.Router("/getbv", &controllers.MysqlController{}, "get:Getbv")
 	beego.Router("/:user/:task/pic", &controllers.PageController{}, "post:Upload_pic")
 	beego.Router("/:user/:task/autosave", &controllers.PageController{}, "post:Autosave")
-
 }

@@ -60,3 +60,9 @@ module.exports = {
 	},
 };
 </script>
+
+<style scoped>
+div {
+	text-align: center;
+}
+</style>
