@@ -142,6 +142,8 @@
                         class="glyphicon glyphicon-chevron-left"></span></button>
                 <button class="btn btn-default" type="button" @click="shownext"><span
                         class="glyphicon glyphicon-chevron-right"></span></button>
+                <button class="btn btn-primary" type="button" @click="save"><span
+                        class="glyphicon glyphicon-floppy-save"></span></button>
             </span>
 
         </div>
@@ -507,7 +509,10 @@
                     this.whichtoupload = $(event.target).index('.el-button--danger');
                 }
                 $("#img" + this.whichtoupload).attr('src', '');
-                $("#img-title" + this.whichtoupload).attr('value', '');
+                $("#img-title" + this.whichtoupload).val('');
+                this.autosave();
+            },
+            save: function () {
                 this.autosave();
             }
         }

@@ -27,6 +27,7 @@ func init() {
 	beego.Router("/gettasks", &controllers.TaskController{})
 	beego.Router("/gettotal", &controllers.TaskController{}, "*:Total")
 	beego.Router("/delete_task", &controllers.TaskController{}, "*:Delete")
+	beego.Router("/:user/:name/export", &controllers.TaskController{}, "get:Exportpptx")
 	beego.Router("/:user/:name", &controllers.PageController{}) //changePage ?p=1
 	beego.Router("/:user/:name/get_pages", &controllers.PageController{}, "get:Get_pages")
 	beego.Router("/:user/:name/addtoend", &controllers.PageController{}, "get:Addtoend")
@@ -35,4 +36,6 @@ func init() {
 	beego.Router("/getbv", &controllers.MysqlController{}, "get:Getbv")
 	beego.Router("/:user/:task/pic", &controllers.PageController{}, "post:Upload_pic")
 	beego.Router("/:user/:task/autosave", &controllers.PageController{}, "post:Autosave")
+	beego.Router("/:user/:name/download", &controllers.PageController{}, "get:Downloadppt")
+
 }

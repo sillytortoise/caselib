@@ -8,6 +8,7 @@ import (
 	"math/rand"
 	"net/url"
 	"os"
+	"os/exec"
 	"path"
 	"regexp"
 	"strconv"
@@ -164,7 +165,7 @@ type Pic struct {
 	Path  string `json:"path"`
 	Bank  string `json:"bank"`
 	Ver   string `json:"ver"`
-	Order int64  `json:"order"` //order本身存储在contain关系里。这里用来传给前端
+	Order int64  `json:"order"` //order本身存储在contains关系里。这里用来传给前端
 	Title string `json:"title"`
 }
 
@@ -269,6 +270,10 @@ func (c *RegisterController) Post() {
 			}
 			return r, e
 		})
+		err := os.Mkdir(username, 0777)
+		if err != nil {
+			panic(err)
+		}
 		c.Ctx.WriteString("1")
 	}
 
@@ -598,7 +603,7 @@ func (c *TaskController) Post() { //创建任务
 			s := t.Format("2006-01-02")
 			_, err = tx.Run(`match (n:User{username:$username})-[r:Control{permission:'own'}]->(t:Task{name:$name}) 
 			create (t)-[i:Include]->(p:Page{order:1,title:'',case_num:'',product_class:'',name:'',version:'',app_class:'', 
-			date:$d, feature:'', abstract:'', page_name:'', detail:'', idea:'', username:$username})`, map[string]interface{}{"username": username, "name": name, "d": s})
+			date:$d, feature:'', abstract:'', page_num:'', detail:'', idea:'', username:$username})`, map[string]interface{}{"username": username, "name": name, "d": s})
 		}
 		if err != nil {
 			panic(err)
@@ -677,6 +682,114 @@ func (c *TaskController) Total() {
 	})
 	rstr := strconv.Itoa(int(results.(int64)))
 	c.Ctx.WriteString(rstr)
+}
+
+func (c *TaskController) Exportpptx() { //导出ppt
+	encode_user := c.Ctx.Input.Param(":user")
+	encode_name := c.Ctx.Input.Param(":name")
+	user, _ := url.QueryUnescape(encode_user)
+	task_name, _ := url.QueryUnescape(encode_name)
+	task_type := c.GetString("type")
+	driver, err := neo4j.NewDriver(dbUri, neo4j.BasicAuth("neo4j", "980115", ""))
+	if err != nil {
+		panic(err)
+	}
+	defer driver.Close()
+	session := driver.NewSession(neo4j.SessionConfig{})
+	defer session.Close()
+
+	var f *os.File
+
+	folder := "user/" + user
+	_, e := os.Stat(folder)
+	if os.IsNotExist(e) {
+		os.MkdirAll(folder, 0666)
+	}
+	filename := folder + "/" + task_name + ".json"
+	f, err = os.OpenFile(filename, os.O_CREATE, 0666)
+
+	if err != nil {
+		panic(err)
+	}
+	if task_type == "2" { //特色化案例库
+		results, _ := session.ReadTransaction(func(tx neo4j.Transaction) (interface{}, error) {
+			results, err := tx.Run(`match (t:Task{name:$name})<-[r:Control]-(u:User{username:$username}), 
+			(t)-[i:Include]->(p:Page) 
+			return p.abstract as abstract, p.case_num as case_num,
+			p.app_class as app_class, p.date as mdate,
+			p.detail as detail, p.feature as feature, p.idea as idea,
+			p.name as name, p.page_num as page_num, p.product_class as product_class,
+			p.title as title,p.username as username, p.version as version,p.order as order order by p.order`,
+				map[string]interface{}{"name": task_name, "username": user})
+			if err != nil {
+				panic(err)
+			}
+			var pages []PageCase
+			for results.Next() {
+				var page PageCase
+				record := results.Record()
+				case_num, _ := record.Get("case_num")
+				product_class, _ := record.Get("product_class")
+				feature, _ := record.Get("feature")
+				page_num, _ := record.Get("page_num")
+				name, _ := record.Get("name")
+				abstract, _ := record.Get("abstract")
+				detail, _ := record.Get("detail")
+				version, _ := record.Get("version")
+				app_class, _ := record.Get("app_class")
+				mdate, _ := record.Get("mdate")
+				username, _ := record.Get("username")
+				idea, _ := record.Get("idea")
+				order, _ := record.Get("order")
+				page.Case_num, _ = case_num.(string)
+				page.Product_class, _ = product_class.(string)
+				page.Feature, _ = feature.(string)
+				page.Page_num, _ = page_num.(string)
+				page.Name, _ = name.(string)
+				page.Abstract, _ = abstract.(string)
+				page.Detail, _ = detail.(string)
+				page.Version, _ = version.(string)
+				page.App_class, _ = app_class.(string)
+				page.Date, _ = mdate.(string)
+				page.Username, _ = username.(string)
+				page.Idea, _ = idea.(string)
+				page.Order, _ = order.(int64) //
+				r, e := tx.Run(`match (u:User{username:$user})-[r:Control]->(t:Task{name:$name}),
+				(t)-[i:Include]->(p:Page{order:$order}), (p)-[c:Contains]->(pic:Pic) return c.title as title, pic.path as path, c.order as order order by c.order`,
+					map[string]interface{}{"user": user, "name": task_name, "order": page.Order})
+				if e != nil {
+					panic(e)
+				}
+
+				for r.Next() {
+					item := r.Record()
+					var pic Pic
+					title, _ := item.Get("title")
+					path, _ := item.Get("path")
+					order, _ := item.Get("order")
+					pic.Title, _ = title.(string)
+					pic.Path, _ = path.(string)
+					pic.Order, _ = order.(int64)
+					page.Pics = append(page.Pics, pic)
+				}
+				pages = append(pages, page)
+			}
+
+			return pages, err
+		})
+		j, _ := json.Marshal(results)
+		f.WriteString(string(j))
+		f.Close()
+		cmd := exec.Command("python", "myppt.py", user, task_name)
+		e := cmd.Run()
+		if e != nil {
+			fmt.Print(e)
+		}
+		c.Ctx.WriteString("1")
+	} else { //竞品分析
+
+	}
+
 }
 
 func (c *TaskController) Delete() {
@@ -932,7 +1045,7 @@ func (c *PageController) Addtoend() {
 		_, _ = session.WriteTransaction(func(tx neo4j.Transaction) (interface{}, error) {
 			_, err = tx.Run(`match (n:User{username:$username})-[r:Control]->(t:Task{name:$name}) 
 			create (t)-[i:Include]->(p:Page{order:t.totalnum+1, title:'',case_num:'',product_class:'',name:'',version:'',app_class:'', 
-			date:$d, feature:'', abstract:'', page_name:'', detail:'', idea:'', username:$username}) set t.totalnum=t.totalnum+1`, map[string]interface{}{"username": user, "name": name, "d": s})
+			date:$d, feature:'', abstract:'', page_num:'', detail:'', idea:'', username:$username}) set t.totalnum=t.totalnum+1`, map[string]interface{}{"username": user, "name": name, "d": s})
 			if err != nil {
 				panic(err)
 			}
@@ -976,7 +1089,7 @@ func (c *PageController) Addtonext() {
 			s := time.Now().Format("2006-01-02")
 			_, err = tx.Run(`match (n:User{username:$username})-[r:Control]->(t:Task{name:$name}) 
 			create (t)-[i:Include]->(p:Page{order:$order, title:'',case_num:'',product_class:'',name:'',version:'',app_class:'', 
-			date:$d, feature:'', abstract:'', page_name:'', detail:'', idea:'', username:$username})`, map[string]interface{}{"username": user, "name": name, "d": s, "order": pint + 1})
+			date:$d, feature:'', abstract:'', page_num:'', detail:'', idea:'', username:$username})`, map[string]interface{}{"username": user, "name": name, "d": s, "order": pint + 1})
 
 		}
 		if err != nil {
@@ -1006,21 +1119,35 @@ func (c *PageController) DeletePage() {
 	defer session.Close()
 	pint, _ := strconv.Atoi(p)
 	_, _ = session.WriteTransaction(func(tx neo4j.Transaction) (interface{}, error) {
+		//删除Page-Pic关系
 		_, err := tx.Run(`match (u:User{username:$user})-[r:Control]->(t:Task{name:$name}),
 		(t)-[i:Include]->(p:Page{order:$order}),
-		 (p)-[c:Contains]->(pic:Pic) delete c`, map[string]interface{}{"name": name, "user": user, "order": pint})
+		 (p)-[c:Contains]->(pic:Pic) delete c`,
+			map[string]interface{}{"name": name, "user": user, "order": pint})
 		if err != nil {
 			panic(err)
 		}
-		_, err = tx.Run("match (u:User{username:$user})-[r:Control]->(t:Task{name:$name}),(t)-[i:Include]->(p:Page{order:$order}) delete i,p", map[string]interface{}{"name": name, "user": user, "order": pint})
+		//Task-Page关系、Page
+		_, err = tx.Run(`match (u:User{username:$user})-[r:Control]->(t:Task{name:$name}),
+		(t)-[i:Include]->(p:Page{order:$order}) 
+		delete i,p`,
+			map[string]interface{}{"name": name, "user": user, "order": pint})
 		if err != nil {
 			panic(err)
 		}
-		_, err = tx.Run("match (u:User{username:$user})-[r:Control]->(t:Task{name:$name}),(t)-[i:Include]->(p:Page) where p.order>$p set p.order=p.order-1", map[string]interface{}{"name": name, "user": user, "p": pint})
+		//后面的页面页码减一
+		_, err = tx.Run(`match (u:User{username:$user})-[r:Control]->(t:Task{name:$name}),
+		(t)-[i:Include]->(p:Page) 
+		where p.order>$p 
+		set p.order=p.order-1`,
+			map[string]interface{}{"name": name, "user": user, "p": pint})
 		if err != nil {
 			panic(err)
 		}
-		_, err = tx.Run("match (u:User{username:$user})-[r:Control]->(t:Task{name:$name}) set t.totalnum=t.totalnum-1", map[string]interface{}{"name": name, "user": user})
+		//总页面数量减一
+		_, err = tx.Run(`match (u:User{username:$user})-[r:Control]->(t:Task{name:$name}) 
+		set t.totalnum=t.totalnum-1`,
+			map[string]interface{}{"name": name, "user": user})
 		return nil, err
 	})
 	c.Ctx.WriteString("1")
@@ -1137,6 +1264,16 @@ func (c *PageController) Upload_pic() { //竞品分析&特色化案例库页面�
 		return nil, nil
 	})
 	c.Ctx.WriteString("success")
+}
+
+func (c *PageController) Downloadppt() {
+	encode_user := c.Ctx.Input.Param(":user")
+	encode_name := c.Ctx.Input.Param(":name")
+	user, _ := url.QueryUnescape(encode_user)
+	task, _ := url.QueryUnescape(encode_name)
+	path := "user/" + user + "/" + task + ".pptx"
+	fmt.Println(path)
+	c.Ctx.Output.Download(path)
 }
 
 func (c *PageController) Autosave() {

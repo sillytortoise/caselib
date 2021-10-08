@@ -1,5 +1,6 @@
 .vscode/
 .idea/
+user/
 static/img/
 static/css/jquery-ui*.css
 static/jquery-ui-1.12.1.custom/
@@ -11,3 +12,4 @@ caselib.exe
 caselib.exe~
 go.mod
 go.sum
+template.pptx

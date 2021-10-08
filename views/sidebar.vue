@@ -15,12 +15,7 @@
 			:wrapper-Closable="false"
 			size="100%"
 		>
-			<el-button
-				type="primary"
-				plain
-				icon="el-icon-plus"
-				@click="addtoend"
-			></el-button>
+			<el-button plain icon="el-icon-plus" @click="addtoend"></el-button>
 			<ul class="list-group" style="text-align: left">
 				<li
 					class="list-group-item"

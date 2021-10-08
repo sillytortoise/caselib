@@ -169,6 +169,16 @@
                         class="glyphicon glyphicon-chevron-left"></span></button>
                 <button class="btn btn-default" type="button" @click="shownext"><span
                         class="glyphicon glyphicon-chevron-right"></span></button>
+                <el-tooltip class="item" effect="dark" content="导出" placement="top">
+                    <button class="btn btn-primary" type="button" @click="export_pptx"><span
+                            class="glyphicon glyphicon-export"></span></button>
+                </el-tooltip>
+                <el-tooltip class="item" effect="dark" content="保存" placement="top">
+                    <button class="btn btn-primary" type="button" @click="save"><span
+                            class="glyphicon glyphicon-floppy-save"></span></button>
+                </el-tooltip>
+                <a v-if="isppt" :href="task_name+'/download'">PPTX</a>
+
             </span>
 
         </div>
@@ -356,7 +366,8 @@
             task_name: null,
             currentPage: 1,
             whichtoupload: 0,
-            selvalue: {}
+            selvalue: {},
+            isppt: false
         },
         created: function () {
             this.user = window.location.pathname.split("/")[1];
@@ -494,9 +505,13 @@
                 $("#selcontainer").modal();
                 if (event.target.tagName == 'SPAN') {
                     this.whichtoupload = $(event.target).parents('button').index('.el-button--primary');
+                    console.log("span" + this.whichtoupload)
+
                 }
                 else {
                     this.whichtoupload = $(event.target).index('.el-button--primary');
+                    console.log("button" + this.whichtoupload)
+
                 }
             },
             selchange: function (value) {
@@ -505,6 +520,7 @@
                 this.selvalue.ver = value[1][1];
             },
             upload: function () {
+                console.log(this.whichtoupload);
                 this.$refs.myuploader.submitUpload();
                 $("#img" + this.whichtoupload).attr("src", this.$refs.myuploader.fileList[0].url);
             },
@@ -535,7 +551,24 @@
                     this.whichtoupload = $(event.target).index('.el-button--danger');
                 }
                 $("#img" + this.whichtoupload).attr('src', '');
-                $("#img-title" + this.whichtoupload).attr('value', '');
+                $("#img-title" + this.whichtoupload).val('');
+                this.autosave();
+            },
+            export_pptx: function () {
+                axios.get(`${this.task_name}/export?type=2`).then(res => {
+                    if (res.data == 1) {
+                        this.$message({
+                            message: '导出成功',
+                            type: 'success'
+                        });
+                        this.isppt = true;
+
+                    } else {
+                        this.$message.error('导出失败');
+                    }
+                });
+            },
+            save: function () {
                 this.autosave();
             }
         },
