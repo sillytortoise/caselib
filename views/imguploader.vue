@@ -23,9 +23,6 @@ module.exports = {
 		};
 	},
 	props: ["index", "selvalue", "page"],
-	components: {
-		selfunc: httpVueLoader("/selfunc.vue"),
-	},
 	methods: {
 		submitUpload() {
 			this.$refs.upload.submit();

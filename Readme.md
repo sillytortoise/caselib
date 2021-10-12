@@ -134,3 +134,21 @@ idea 应用思路
 <font color="red">图片添加删除按钮</font>
 
 图片浏览器
+
+
+
+
+
+bug:
+
+1. analysis 图片用el-image
+2. 改图片路径
+3. 改setpic
+4. 改autosave
+5. 改upload方法
+6. 改上传时src blob情况
+
+新增功能
+
+1. 按照app 筛选图片（按照版本号排序）
+2. 上传时指定app/版本/功能模块

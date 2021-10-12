@@ -22,7 +22,11 @@
 						<h4 class="modal-title" id="myModalimgbLabel">选择</h4>
 					</div>
 					<div class="modal-body">
-						<selfunc ref="imgb_selfunc" @change="conschange"></selfunc>
+						<selfunc
+							ref="imgb_selfunc"
+							@change="conschange"
+							:strict="true"
+						></selfunc>
 						<button type="button" class="btn btn-primary" @click="sure">
 							确定
 						</button>
@@ -48,7 +52,7 @@
 									style="visibility: hidden"
 								></span>
 								<el-image
-									style="max-width: 70px; height: 150px"
+									style="max-width: 150px; height: 300px"
 									:src="'/' + t.path"
 									:preview-src-list="['/' + t.path]"
 									@contextmenu.prevent="select"
@@ -97,16 +101,32 @@ module.exports = {
 			]
 		}
 		*/
-		axios.get(`/allimages?p=1`).then((res) => {
+		axios.get(`/imgs?p=1`).then((res) => {
 			this.total = res.data.total;
 			this.imgs = res.data.imgs;
 		});
 	},
 	methods: {
 		handleCurrentChange(val) {
-			axios.get(`/allimages?p=${this.currentPage}`).then((res) => {
-				this.imgs = res.data.imgs;
-			});
+			let func = this.$refs.imgb_selfunc.value1;
+			let value = this.$refs.imgb_selfunc.value2;
+			let app;
+			let ver;
+			if (value.length > 0) {
+				app = value[0];
+			} else {
+				app = "";
+			}
+			if (value.length === 2) {
+				ver = value[1];
+			} else {
+				ver = "";
+			}
+			axios
+				.get(`/imgs?p=${this.currentPage}&func=${func}&app=${app}&ver=${ver}`)
+				.then((res) => {
+					this.imgs = res.data.imgs;
+				});
 		},
 		select(event) {
 			$(".glyphicon-ok-sign").css("visibility", "hidden");
@@ -118,6 +138,25 @@ module.exports = {
 		},
 		conschange(val) {
 			//axios 新的条件请求图片
+			let func = this.$refs.imgb_selfunc.value1;
+			let value = this.$refs.imgb_selfunc.value2;
+			let app;
+			let ver;
+			if (value.length > 0) {
+				app = value[0];
+			} else {
+				app = "";
+			}
+			if (value.length === 2) {
+				ver = value[1];
+			} else {
+				ver = "";
+			}
+			axios.get(`/imgs?p=1&func=${func}&app=${app}&ver=${ver}`).then((res) => {
+				this.imgs = res.data.imgs;
+				this.total = res.data.total;
+				this.currentPage = 1;
+			});
 		},
 	},
 };
@@ -126,6 +165,11 @@ module.exports = {
 <style scoped>
 .modal {
 	height: 600px;
+}
+
+.modal-dialog {
+	height: 100%;
+	width: 1000px;
 }
 
 span {

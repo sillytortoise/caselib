@@ -1,9 +1,17 @@
 <template>
 	<div id="bigpanel" class="panel panel-default">
 		<div class="panel-body">
-			<myupload></myupload>
+			<el-switch
+				v-model="switchvalue"
+				active-text="手动输入"
+				inactive-text="选择"
+			>
+			</el-switch>
+			<myupload :switch="switchvalue" @afterupload="afterupload"></myupload>
 		</div>
-		<selfunc ref="imgb_selfunc" @change="conschange"></selfunc>
+
+		<selfunc ref="imgb_selfunc" @change="conschange" :strict="true"></selfunc>
+
 		<div class="block">
 			<!--分页-->
 			<el-pagination
@@ -45,6 +53,7 @@ module.exports = {
 			imgs: [],
 			currentPage: null,
 			selectpic: null,
+			switchvalue: true,
 		};
 	},
 	components: {
@@ -69,19 +78,59 @@ module.exports = {
 			]
 		}
 		*/
-		axios.get(`/allimages?p=1`).then((res) => {
+		axios.get(`/imgs?p=1`).then((res) => {
 			this.total = res.data.total;
 			this.imgs = res.data.imgs;
 		});
 	},
 	methods: {
+		/*改变页数*/
 		handleCurrentChange(val) {
-			axios.get(`/allimages?p=${this.currentPage}`).then((res) => {
-				this.imgs = res.data.imgs;
-			});
+			let func = this.$refs.imgb_selfunc.value1;
+			let value = this.$refs.imgb_selfunc.value2;
+			let app;
+			let ver;
+			if (value.length > 0) {
+				app = value[0];
+			} else {
+				app = "";
+			}
+			if (value.length === 2) {
+				ver = value[1];
+			} else {
+				ver = "";
+			}
+			axios
+				.get(`/imgs?p=${this.currentPage}&func=${func}&app=${app}&ver=${ver}`)
+				.then((res) => {
+					this.imgs = res.data.imgs;
+				});
 		},
+		/*改变筛选条件*/
 		conschange(val) {
 			//axios 新的条件请求图片
+			let func = this.$refs.imgb_selfunc.value1;
+			let value = this.$refs.imgb_selfunc.value2;
+			let app;
+			let ver;
+			if (value.length > 0) {
+				app = value[0];
+			} else {
+				app = "";
+			}
+			if (value.length === 2) {
+				ver = value[1];
+			} else {
+				ver = "";
+			}
+			axios.get(`/imgs?p=1&func=${func}&app=${app}&ver=${ver}`).then((res) => {
+				this.imgs = res.data.imgs;
+				this.total = res.data.total;
+				this.currentPage = 1;
+			});
+		},
+		afterupload() {
+			this.$refs.imgb_selfunc.init();
 		},
 	},
 };
@@ -99,5 +148,10 @@ module.exports = {
 
 .el-pagination {
 	text-align: center;
+}
+
+.el-switch {
+	position: absolute;
+	right: 20px;
 }
 </style>

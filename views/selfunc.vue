@@ -17,13 +17,15 @@
 		</el-select>
 		<el-cascader
 			clearable
-			placeholder="选择银行与版本"
+			placeholder="选择App与版本"
 			v-model="value2"
 			:options="options2"
-			:props="{ expandTrigger: 'hover' }"
+			:props="{ checkStrictly: strict }"
 			@change="handleChange2"
+			filterable
 		>
 		</el-cascader>
+		<slot></slot>
 	</div>
 </template>
 
@@ -37,20 +39,26 @@ module.exports = {
 			options2: [],
 		};
 	},
+	props: {
+		strict: Boolean, //default:false
+	},
 	emits: ["change"],
 	created: function () {
-		//获取功能模块
-		axios.get("/getfunc").then((res) => {
-			for (let item of res.data) {
-				this.options1.push({ value: item, label: item });
-			}
-		});
-		//获取APP和版本
-		axios.get("/getbv").then((res) => {
-			this.options2 = res.data;
-		});
+		this.init();
 	},
 	methods: {
+		init() {
+			//获取功能模块
+			axios.get("/getfunc").then((res) => {
+				for (let item of res.data) {
+					this.options1.push({ value: item, label: item });
+				}
+			});
+			//获取APP和版本
+			axios.get("/getbv").then((res) => {
+				this.options2 = res.data;
+			});
+		},
 		handleChange1(value) {
 			this.$emit("change", [value, this.value2]);
 		},

@@ -12,7 +12,6 @@ import (
 	"path"
 	"regexp"
 	"strconv"
-	"strings"
 	"time"
 
 	"github.com/beego/beego/v2/client/orm"
@@ -73,9 +72,6 @@ type InfoController struct {
 }
 
 type FuncController struct {
-	beego.Controller
-}
-type MysqlController struct {
 	beego.Controller
 }
 
@@ -389,6 +385,10 @@ func (c *Modlevel2Controller) Post() {
 func (c *PicsController) Post() {
 	f, h, _ := c.GetFile("file") //获取上传的文件
 	ext := path.Ext(h.Filename)
+	function := c.GetString("func")
+	app := c.GetString("app")
+	ver := c.GetString("ver")
+	fmt.Println("function:", function, "app:", app, "ver:", ver)
 
 	//创建目录
 	uploadDir := "static/upload/" //+ time.Now().Format("2006/01/02/")
@@ -418,19 +418,41 @@ func (c *PicsController) Post() {
 	defer driver.Close()
 	session := driver.NewSession(neo4j.SessionConfig{})
 	defer session.Close()
-	_, _ = session.WriteTransaction(func(tx neo4j.Transaction) (interface{}, error) {
-		result, err := tx.Run("create(n:Pic{path:$p})", map[string]interface{}{"p": fileName})
-
-		s := c.GetString("select")
-		ss := strings.Split(s, ",")
-
-		for _, i := range ss {
-			_, err = tx.Run("match (n:Assess{id:$s}),(m:Pic{path:$p}) create (n)-[p:POINTS]->(m)", map[string]interface{}{"s": i, "p": fpath})
-		}
+	_, _ = session.WriteTransaction(func(tx neo4j.Transaction) (interface{}, error) { //创建图片
+		_, err := tx.Run("create (n:Pic{path:$p})", map[string]interface{}{"p": fileName})
 		if err != nil {
 			panic(err)
 		}
-		return result, nil
+		return nil, nil
+	})
+	_, _ = session.WriteTransaction(func(tx neo4j.Transaction) (interface{}, error) {
+		r, err := tx.Run("match (f:Func{name:$f}) return f.name as name", map[string]interface{}{"f": function})
+		if err != nil {
+			panic(err)
+		}
+		if !r.Next() { //没有功能，新建
+			_, err = tx.Run("create (f:Func{name:$f})", map[string]interface{}{"f": function})
+			if err != nil {
+				panic(err)
+			}
+		}
+		r, err = tx.Run("match (a:App{name:$n}) return a.name", map[string]interface{}{"n": app})
+		if err != nil {
+			panic(err)
+		}
+		if !r.Next() { //没有app 新建
+			_, err = tx.Run("create (f:App{name:$n})", map[string]interface{}{"n": app})
+			if err != nil {
+				panic(err)
+			}
+		}
+		_, err = tx.Run(`match (a:App{name:$n}),(f:Func{name:$f}) 
+		create (a)-[v:Vernum{num:$num}]->(p:Pic{path:$path}),(p)-[i:Implements]->(f)`,
+			map[string]interface{}{"n": app, "num": ver, "path": fileName, "f": function})
+		if err != nil {
+			panic(err)
+		}
+		return nil, nil
 	})
 	c.Ctx.WriteString("")
 }
@@ -1153,37 +1175,44 @@ func (c *PageController) DeletePage() {
 	c.Ctx.WriteString("1")
 }
 
-func (c *MysqlController) Getbv() {
+func (c *PicsController) Getbv() {
 	if c.Ctx.GetCookie("username") == "" {
 		c.TplName = "signin.html"
 		return
 	}
-	o := orm.NewOrm()
-	var lists []orm.ParamsList
-	var banks []Bank
-	_, err := o.Raw("select distinct bank_name from versions").ValuesList(&lists)
+	driver, err := neo4j.NewDriver(dbUri, neo4j.BasicAuth("neo4j", "980115", ""))
 	if err != nil {
 		panic(err)
 	}
-	for _, item := range lists {
-		var bank Bank
-		bank.BankName = item[0].(string)
-		bank.Value = item[0].(string)
-		var ls []orm.ParamsList
-		_, e := o.Raw("select distinct ver from versions where bank_name=?", item[0].(string)).ValuesList(&ls)
-		if e != nil {
-			panic(e)
+	defer driver.Close()
+	session := driver.NewSession(neo4j.SessionConfig{})
+	defer session.Close()
+	results, _ := session.ReadTransaction(func(tx neo4j.Transaction) (interface{}, error) {
+		result, _ := tx.Run("match (a:App) return a.name as name", map[string]interface{}{})
+		var banks []Bank
+		for result.Next() {
+			record := result.Record()
+			var bank Bank
+			appname, _ := record.Get("name")
+			name, _ := appname.(string)
+			bank.BankName = name
+			bank.Value = name
+			r, _ := tx.Run("match (a:App{name:$n})-[v:Vernum]->(pic:Pic) return distinct v.num as num order by num desc",
+				map[string]interface{}{"n": name})
+			for r.Next() {
+				rec := r.Record()
+				var ver Ver
+				num, _ := rec.Get("num")
+				numstr, _ := num.(string)
+				ver.Vername = numstr
+				ver.Value = numstr
+				bank.Vers = append(bank.Vers, ver)
+			}
+			banks = append(banks, bank)
 		}
-		for _, value := range ls {
-			var ver Ver
-			ver.Vername = value[0].(string)
-			ver.Value = value[0].(string)
-			bank.Vers = append(bank.Vers, ver)
-		}
-		banks = append(banks, bank)
-	}
-
-	c.Data["json"] = banks
+		return banks, nil
+	})
+	c.Data["json"] = results
 	c.ServeJSON()
 }
 
@@ -1256,7 +1285,7 @@ func (c *PageController) Upload_pic() { //竞品分析&特色化案例库页面�
 			panic(err)
 		}
 
-		/*建立与功能模块的关系 implement*/
+		/*建立与功能模块的关系 implements*/
 		_, err = tx.Run("match (f:Func{name:$name}),(p:Pic{path:$path,bank:$bank,ver:$ver}) create (p)-[i:Implements]->(f)", map[string]interface{}{"name": fun, "path": fileName, "bank": bank, "ver": ver})
 		if err != nil {
 			panic(err)
@@ -1545,13 +1574,12 @@ func (c *PageController) Autosave() {
 	c.Ctx.WriteString("success")
 }
 
-func (c *ImageController) Allimages() {
-	if c.Ctx.GetCookie("username") == "" {
-		c.TplName = "signin.html"
-		return
-	}
+func (c *ImageController) FilterImgs() {
 	page := c.GetString("p")
 	page_int, _ := strconv.Atoi(page)
+	function := c.GetString("func")
+	app := c.GetString("app")
+	ver := c.GetString("ver")
 	driver, err := neo4j.NewDriver(dbUri, neo4j.BasicAuth("neo4j", "980115", ""))
 	if err != nil {
 		panic(err)
@@ -1559,8 +1587,33 @@ func (c *ImageController) Allimages() {
 	defer driver.Close()
 	session := driver.NewSession(neo4j.SessionConfig{})
 	defer session.Close()
+
+	var search_cypher string
+	var para map[string]interface{}
+	postfix := " return p.path as path, p.bank as bank, p.ver as ver skip $head limit 20"
+
+	if function == "" && app == "" && ver == "" { //allimages
+		search_cypher = "match (p:Pic)"
+		para = map[string]interface{}{"head": (page_int - 1) * 20}
+	} else if function == "" && ver == "" {
+		search_cypher = "match (a:App{name:$name})-[v:Vernum]->(p:Pic)"
+		para = map[string]interface{}{"head": (page_int - 1) * 20, "name": app}
+	} else if function == "" && ver != "" {
+		search_cypher = "match (a:App{name:$name})-[v:Vernum{num:$num}]->(p:Pic)"
+		para = map[string]interface{}{"head": (page_int - 1) * 20, "name": app, "num": ver}
+	} else if function != "" && app == "" && ver == "" {
+		search_cypher = "match (p:Pic)-[i:Implements]->(f:Func{name:$func})"
+		para = map[string]interface{}{"head": (page_int - 1) * 20, "func": function}
+	} else if function != "" && ver == "" {
+		search_cypher = "match (a:App{name:$name})-[v:Vernum]->(p:Pic),(p)-[i:Implements]->(f:Func{name:$func})"
+		para = map[string]interface{}{"head": (page_int - 1) * 20, "name": app, "func": function}
+	} else if function != "" && ver != "" {
+		search_cypher = "match (a:App{name:$name})-[v:Vernum{num:$num}]->(p:Pic),(p)-[i:Implements]->(f:Func{name:$func})"
+		para = map[string]interface{}{"head": (page_int - 1) * 20, "name": app, "num": ver, "func": function}
+	}
+
 	results, _ := session.ReadTransaction(func(tx neo4j.Transaction) (interface{}, error) {
-		records, err := tx.Run(`match (p:Pic) return p.path as path, p.bank as bank, p.ver as ver skip $head limit 20`, map[string]interface{}{"head": (page_int - 1) * 20})
+		records, err := tx.Run(search_cypher+postfix, para)
 		if err != nil {
 			panic(err)
 		}
@@ -1575,7 +1628,7 @@ func (c *ImageController) Allimages() {
 			verstr, _ := ver.(string)
 			pics = append(pics, Pic{Path: pathstr, Bank: bankstr, Ver: verstr})
 		}
-		total, err := tx.Run("match (p:Pic) return count(p) as num", map[string]interface{}{})
+		total, err := tx.Run(search_cypher+" return count(p) as num", para)
 		if err != nil {
 			panic(err)
 		}
