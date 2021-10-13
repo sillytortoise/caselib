@@ -6,10 +6,6 @@ static/css/jquery-ui*.css
 static/jquery-ui-1.12.1.custom/
 static/js/
 static/piclib/
-static/upload/
 tests/
 caselib.exe
 caselib.exe~
-go.mod
-go.sum
-template.pptx

@@ -111,6 +111,7 @@
                 </li>
                 <li><a href="#assess" data-toggle="tab">测评指标</a></li>
                 <li><a href="#piclib" data-toggle="tab">图片上传</a></li>
+                <!--
                 <li class="dropdown">
                     <a href="#" id="myTabDrop2" class="dropdown-toggle" data-toggle="dropdown">案例库
                         <b class="caret"></b>
@@ -120,6 +121,7 @@
                         <li><a href="#ejb" tabindex="-1" data-toggle="tab">ejb</a></li>
                     </ul>
                 </li>
+                -->
             </ul>
             <div id="myTabContent" class="tab-content">
                 <div class="tab-pane fade in active" id="home">
@@ -141,9 +143,24 @@
             </div>
         </div>
     </div>
+    <footer class="bs-docs-footer" style="background-color: rgb(77, 74, 74);height:150px">
+        <div class="container" style="height:100%">
+            <br>
+            <p style="color: white;margin:0"></span>By
+                <span class="glyphicon glyphicon-heart" style="color: white;"></span>sillytortoise
+            </p><br>
+            <span style="color:white">
+                Based on Golang&Vue.js</span>
+            <span style="color:white;margin-left:100px">
+                项目地址：<a href="https://github.com/sillytortoise/caselib"
+                    target="view_window">https://github.com/sillytortoise/caselib</a></span>
+        </div>
+    </footer>
 
 
 </body>
+
+
 
 </html>
 
@@ -177,7 +194,7 @@
             username: function () {
                 var arr, reg = new RegExp("(^| )username=([^;]*)(;|$)");
                 if (arr = document.cookie.match(reg))
-                    return unescape(arr[2]);
+                    return decodeURI(arr[2]);
                 else
                     return null;
             }

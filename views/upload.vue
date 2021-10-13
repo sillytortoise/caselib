@@ -5,7 +5,7 @@
 				style="display: inline-block; width: 45%;height=200px;vertical-align:top"
 			>
 				<selfunc ref="upload_sel" :strict="false"></selfunc>
-				<div style="text-align: center">
+				<div style="text-align: left">
 					<p>没有？在下面输入</p>
 					<el-input v-model="input_app" placeholder="APP名称"></el-input>
 					<el-input v-model="input_ver" placeholder="版本"></el-input>
@@ -36,23 +36,6 @@
 					>
 					<div class="el-upload__tip" slot="tip">只能上传jpg/jpeg/png文件</div>
 				</el-upload>
-			</div>
-		</div>
-
-		<div class="panel panel-default">
-			<div class="panel-body">
-				<ul id="upload-list" class="list-group">
-					<li v-for="item in fileList" class="list-group-item" :key="item.url">
-						{{ item.name }}
-						<label
-							v-for="l in item.labels"
-							class="label label-default"
-							:key="l"
-							>{{ l }}</label
-						>
-						<span class="glyphicon glyphicon-remove" @click="removeItem"></span>
-					</li>
-				</ul>
 			</div>
 		</div>
 	</div>

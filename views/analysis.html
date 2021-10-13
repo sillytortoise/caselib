@@ -142,8 +142,15 @@
                         class="glyphicon glyphicon-chevron-left"></span></button>
                 <button class="btn btn-default" type="button" @click="shownext"><span
                         class="glyphicon glyphicon-chevron-right"></span></button>
-                <button class="btn btn-primary" type="button" @click="save"><span
-                        class="glyphicon glyphicon-floppy-save"></span></button>
+                <el-tooltip class="item" effect="dark" content="导出" placement="top">
+                    <button class="btn btn-primary" type="button" @click="export_pptx"><span
+                            class="glyphicon glyphicon-export"></span></button>
+                </el-tooltip>
+                <el-tooltip class="item" effect="dark" content="保存" placement="top">
+                    <button class="btn btn-primary" type="button" @click="save"><span
+                            class="glyphicon glyphicon-floppy-save"></span></button>
+                </el-tooltip>
+                <a v-if="isppt" :href="task_name+'/download'">PPTX</a>
             </span>
 
         </div>
@@ -208,20 +215,30 @@
                     </thead>
                     <tbody style="height: 90%;">
                         <tr style="height:100%;">
-                            <td style="height:100%;border: solid 1px white;"><img id="img0"
-                                    :src="info.pics[0].path==''?'':('/'+info.pics[0].path)" @change="autosave" />
+                            <td style="height:100%;border: solid 1px white;">
+                                <el-image id="img0" @change="autosave"
+                                    :src="info.pics[0].path.slice(0,5)=='blob:'?info.pics[0].path:(info.pics[0].path==''?'':('/'+info.pics[0].path))"
+                                    :preview-src-list="[info.pics[0].path==''?'':('/'+info.pics[0].path)]"></el-image>
                             </td>
-                            <td style=" height:100%;border: solid 1px white;"><img id="img1"
-                                    :src="info.pics[1].path==''?'':('/'+info.pics[1].path)" @change="autosave" />
+                            <td style=" height:100%;border: solid 1px white;">
+                                <el-image id="img1" @change="autosave"
+                                    :src="info.pics[1].path.slice(0,5)=='blob:'?info.pics[1].path:(info.pics[1].path==''?'':('/'+info.pics[1].path))"
+                                    :preview-src-list="[info.pics[1].path==''?'':('/'+info.pics[1].path)]"></el-image>
                             </td>
-                            <td style=" height:100%;border: solid 1px white;"><img id="img2"
-                                    :src="info.pics[2].path==''?'':('/'+info.pics[2].path)" @change="autosave" />
+                            <td style=" height:100%;border: solid 1px white;">
+                                <el-image id="img2" @change="autosave"
+                                    :src="info.pics[2].path.slice(0,5)=='blob:'?info.pics[2].path:(info.pics[2].path==''?'':('/'+info.pics[2].path))"
+                                    :preview-src-list="[info.pics[2].path==''?'':('/'+info.pics[2].path)]"></el-image>
                             </td>
-                            <td style=" height:100%;border: solid 1px white;"><img id="img3"
-                                    :src="info.pics[3].path==''?'':('/'+info.pics[3].path)" @change="autosave" />
+                            <td style=" height:100%;border: solid 1px white;">
+                                <el-image id="img3" @change="autosave"
+                                    :src="info.pics[3].path.slice(0,5)=='blob:'?info.pics[3].path:(info.pics[3].path==''?'':('/'+info.pics[3].path))"
+                                    :preview-src-list="[info.pics[3].path==''?'':('/'+info.pics[3].path)]"></el-image>
                             </td>
-                            <td style=" height:100%;border: solid 1px white;"><img id="img4"
-                                    :src="info.pics[4].path==''?'':('/'+info.pics[4].path)" @change="autosave" />
+                            <td style=" height:100%;border: solid 1px white;">
+                                <el-image id="img4" @change="autosave"
+                                    :src="info.pics[4].path.slice(0,5)=='blob:'?info.pics[4].path:(info.pics[4].path==''?'':('/'+info.pics[4].path))"
+                                    :preview-src-list="[info.pics[4].path==''?'':('/'+info.pics[4].path)]"></el-image>
                             </td>
                         </tr>
                     </tbody>
@@ -342,7 +359,8 @@
             currentPage: 1,
             whichtoupload: 0,
             selvalue: {},
-            targetid: ""
+            targetid: "",
+            isppt: false
         },
         created: function () {
             this.user = window.location.pathname.split("/")[1];
@@ -448,7 +466,7 @@
             },
             upload: function () {
                 this.$refs.myuploader.submitUpload();
-                $("#img" + this.whichtoupload).attr("src", this.$refs.myuploader.fileList[0].url);
+                this.info.pics[this.whichtoupload].path = this.$refs.myuploader.fileList[0].url;
             },
             selchange: function (value) {
                 this.selvalue.func = value[0];
@@ -465,15 +483,15 @@
                         problem: $("input[name='problem']").val(),
                         advice: $("input[name='advice']").val(),
                         imgtitle0: $("#img-title0").val(),
-                        imgpath0: $("#img0").attr("src"),
+                        imgpath0: '/' + this.info.pics[0].path,
                         imgtitle1: $("#img-title1").val(),
-                        imgpath1: $("#img1").attr("src"),
+                        imgpath1: '/' + this.info.pics[1].path,
                         imgtitle2: $("#img-title2").val(),
-                        imgpath2: $("#img2").attr("src"),
+                        imgpath2: '/' + this.info.pics[2].path,
                         imgtitle3: $("#img-title3").val(),
-                        imgpath3: $("#img3").attr("src"),
+                        imgpath3: '/' + this.info.pics[3].path,
                         imgtitle4: $("#img-title4").val(),
-                        imgpath4: $("#img4").attr("src"),
+                        imgpath4: '/' + this.info.pics[4].path,
                     },
                     success: function () {
                         app.$message({
@@ -488,7 +506,7 @@
 
             },
             setpic: function (val) {
-                $("#img" + this.whichtoupload).attr('src', '/' + val);
+                this.info.pics[this.whichtoupload].path = val;
                 $("#myModalimgb").modal('hide');
                 this.autosave();
             },
@@ -510,11 +528,26 @@
                 }
                 $("#img" + this.whichtoupload).attr('src', '');
                 $("#img-title" + this.whichtoupload).val('');
+                this.info.pics[this.whichtoupload].path = '';
                 this.autosave();
             },
             save: function () {
                 this.autosave();
-            }
+            },
+            export_pptx: function () {
+                axios.get(`${this.task_name}/export?type=1`).then(res => {
+                    if (res.data == 1) {
+                        this.$message({
+                            message: '导出成功',
+                            type: 'success'
+                        });
+                        this.isppt = true;
+
+                    } else {
+                        this.$message.error('导出失败');
+                    }
+                });
+            },
         }
     })
 

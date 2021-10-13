@@ -181,7 +181,7 @@ module.exports = {
 		username: function () {
 			var arr,
 				reg = new RegExp("(^| )username=([^;]*)(;|$)");
-			if ((arr = document.cookie.match(reg))) return unescape(arr[2]);
+			if ((arr = document.cookie.match(reg))) return decodeURI(arr[2]);
 			else return null;
 		},
 	},
@@ -320,9 +320,10 @@ module.exports = {
 			let name = $(event.target).parents("tr").attr("name");
 			let task_type = $($(event.target).parents("tr").children("td")[4]).text();
 			let task_type_flag;
+			let owner = $($(event.target).parents("tr").children("td")[3]).text();
 			if (task_type == "竞品分析") task_type_flag = 1;
 			else task_type_flag = 2;
-			window.open(`/${this.username}/${name}?type=${task_type_flag}`);
+			window.open(`/${owner}/${name}?type=${task_type_flag}`);
 		},
 		delete_task: function (event) {
 			axios

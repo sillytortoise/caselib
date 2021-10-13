@@ -14,9 +14,6 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/beego/beego/v2/client/orm"
-	_ "github.com/go-sql-driver/mysql"
-
 	"github.com/astaxie/beego"
 	"github.com/neo4j/neo4j-go-driver/v4/neo4j"
 )
@@ -120,11 +117,15 @@ type PageOutline struct {
 }
 
 type Page struct { //竞品分析页面
-	Title   string `json:"title"`
-	Target  string `json:"target"`
-	Problem string `json:"problem"`
-	Advice  string `json:"advice"`
-	Pics    []Pic  `json:"pics"`
+	Title          string `json:"title"`
+	Target         string `json:"target"`
+	Problem        string `json:"problem"`
+	Advice         string `json:"advice"`
+	Item           string `json:"item"`
+	Priority       string `json:"priority"`
+	Target_content string `json:"target_content"`
+	Type           string `json:"type"`
+	Pics           []Pic  `json:"pics"`
 }
 
 type PageCase struct { //特色化案例库页面
@@ -175,19 +176,21 @@ type Contains struct {
 }
 
 func init() {
-	orm.RegisterDataBase("default", "mysql", "root:@tcp(127.0.0.1:3306)/versions?charset=utf8&loc=Local")
 }
 
 func (c *MainController) Get() {
-	if c.Ctx.GetCookie("username") == "" {
+	username, _ := url.QueryUnescape(c.Ctx.GetCookie("username"))
+	if username == "" {
 		c.TplName = "signin.html"
+		return
 	} else {
 		c.TplName = "index.html"
 	}
 }
 
 func (c *VueController) Get() {
-	if c.Ctx.GetCookie("username") == "" {
+	username, _ := url.QueryUnescape(c.Ctx.GetCookie("username"))
+	if username == "" {
 		c.TplName = "signin.html"
 		return
 	}
@@ -203,6 +206,7 @@ func (c *LoginController) Post() {
 	username := c.GetString("username")
 	password := c.GetString("password")
 	remember := c.GetString("remember")
+	fmt.Println(username, password)
 	driver, err := neo4j.NewDriver(dbUri, neo4j.BasicAuth("neo4j", "980115", ""))
 	if err != nil {
 		panic(err)
@@ -217,12 +221,11 @@ func (c *LoginController) Post() {
 		}
 		if records.Next() { //验证通过
 			if remember == "true" {
-				c.Ctx.SetCookie("username", username, time.Hour*24*10)
+				c.Ctx.SetCookie("username", url.QueryEscape(username), time.Hour*24*10)
 				c.Ctx.SetCookie("password", password, time.Hour*24*10)
 			} else {
-				c.Ctx.SetCookie("username", username, time.Second*3600*24)
+				c.Ctx.SetCookie("username", url.QueryEscape(username), time.Second*3600*24)
 				c.Ctx.SetCookie("password", password, time.Second*3600*24)
-
 			}
 			return "1", err
 		} else { //验证不通过
@@ -276,7 +279,8 @@ func (c *RegisterController) Post() {
 }
 
 func (c *AssessTargetController) Get() {
-	if c.Ctx.GetCookie("username") == "" {
+	username, _ := url.QueryUnescape(c.Ctx.GetCookie("username"))
+	if username == "" {
 		c.TplName = "signin.html"
 		return
 	}
@@ -458,7 +462,12 @@ func (c *PicsController) Post() {
 }
 
 func (c *TplController) Get() {
-	if c.Ctx.GetCookie("username") == "" {
+	if c.Ctx.Input.Param(":filename") == "register.html" {
+		c.TplName = "register.html"
+		return
+	}
+	username, _ := url.QueryUnescape(c.Ctx.GetCookie("username"))
+	if username == "" {
 		c.TplName = "signin.html"
 		return
 	}
@@ -471,7 +480,8 @@ func (c *TplController) Get() {
 }
 
 func (c *CssController) Get() {
-	if c.Ctx.GetCookie("username") == "" {
+	username, _ := url.QueryUnescape(c.Ctx.GetCookie("username"))
+	if username == "" {
 		c.TplName = "signin.html"
 		return
 	}
@@ -484,10 +494,6 @@ func (c *CssController) Get() {
 }
 
 func (c *ImageController) Get() {
-	if c.Ctx.GetCookie("username") == "" {
-		c.TplName = "signin.html"
-		return
-	}
 	uri := c.Ctx.Request.RequestURI
 	b, err := ioutil.ReadFile("./static/upload" + uri) // just pass the file name
 	if err != nil {
@@ -497,7 +503,8 @@ func (c *ImageController) Get() {
 }
 
 func (c *JsController) Get() {
-	if c.Ctx.GetCookie("username") == "" {
+	username, _ := url.QueryUnescape(c.Ctx.GetCookie("username"))
+	if username == "" {
 		c.TplName = "signin.html"
 		return
 	}
@@ -510,7 +517,8 @@ func (c *JsController) Get() {
 }
 
 func (c *InfoController) Get() {
-	if c.Ctx.GetCookie("username") == "" {
+	username, _ := url.QueryUnescape(c.Ctx.GetCookie("username"))
+	if username == "" {
 		c.TplName = "signin.html"
 		return
 	}
@@ -555,7 +563,8 @@ func (c *InfoController) Get() {
 }
 
 func (c *FuncController) Get() {
-	if c.Ctx.GetCookie("username") == "" {
+	username, _ := url.QueryUnescape(c.Ctx.GetCookie("username"))
+	if username == "" {
 		c.TplName = "signin.html"
 		return
 	}
@@ -636,7 +645,8 @@ func (c *TaskController) Post() { //创建任务
 }
 
 func (c *TaskController) Get() { //获取任务列表
-	if c.Ctx.GetCookie("username") == "" {
+	username, _ := url.QueryUnescape(c.Ctx.GetCookie("username"))
+	if username == "" {
 		c.TplName = "signin.html"
 		return
 	}
@@ -677,11 +687,11 @@ func (c *TaskController) Get() { //获取任务列表
 }
 
 func (c *TaskController) Total() {
-	if c.Ctx.GetCookie("username") == "" {
+	username, _ := url.QueryUnescape(c.Ctx.GetCookie("username"))
+	if username == "" {
 		c.TplName = "signin.html"
 		return
 	}
-	username := c.GetString("username")
 	driver, err := neo4j.NewDriver(dbUri, neo4j.BasicAuth("neo4j", "980115", ""))
 	if err != nil {
 		panic(err)
@@ -733,8 +743,10 @@ func (c *TaskController) Exportpptx() { //导出ppt
 	if err != nil {
 		panic(err)
 	}
+
+	var results interface{}
 	if task_type == "2" { //特色化案例库
-		results, _ := session.ReadTransaction(func(tx neo4j.Transaction) (interface{}, error) {
+		results, _ = session.ReadTransaction(func(tx neo4j.Transaction) (interface{}, error) {
 			results, err := tx.Run(`match (t:Task{name:$name})<-[r:Control]-(u:User{username:$username}), 
 			(t)-[i:Include]->(p:Page) 
 			return p.abstract as abstract, p.case_num as case_num,
@@ -799,27 +811,88 @@ func (c *TaskController) Exportpptx() { //导出ppt
 
 			return pages, err
 		})
-		j, _ := json.Marshal(results)
-		f.WriteString(string(j))
-		f.Close()
-		cmd := exec.Command("python", "myppt.py", user, task_name)
-		e := cmd.Run()
-		if e != nil {
-			fmt.Print(e)
-		}
-		c.Ctx.WriteString("1")
 	} else { //竞品分析
+		results, _ = session.ReadTransaction(func(tx neo4j.Transaction) (interface{}, error) {
+			result, _ := tx.Run(`match (t:Task{name:$name})<-[c:Control]-(u:User{username:$user}),(t)-[i:Include]->(p:Page) 
+			return p.advice as advice, p.problem as problem, p.targetid as targetid,
+			p.title as title, p.order as order order by order`, map[string]interface{}{"user": user, "name": task_name})
+			if err != nil {
+				panic(err)
+			}
+			var pages []Page
+			for result.Next() {
+				var page Page
+				record := result.Record()
+				advice, _ := record.Get("advice")
+				problem, _ := record.Get("problem")
+				targetid, _ := record.Get("targetid")
+				title, _ := record.Get("title")
+				order, _ := record.Get("order")
+				page.Advice, _ = advice.(string)
+				page.Problem, _ = problem.(string)
+				page.Target, _ = targetid.(string)
+				page.Title, _ = title.(string)
+				orderint, _ := order.(int64)
+				r, err := tx.Run(`match (a:Assess{id:$id}) return a.item as item, a.priority as priority, 
+				a.target as target_content, a.type as type`, map[string]interface{}{"id": page.Target})
+				if err != nil {
+					panic(err)
+				}
+				if r.Next() {
+					rec := r.Record()
+					item, _ := rec.Get("item")
+					priority, _ := rec.Get("priority")
+					target_content, _ := rec.Get("target_content")
+					t, _ := rec.Get("type")
+					page.Item, _ = item.(string)
+					page.Priority, _ = priority.(string)
+					page.Target_content, _ = target_content.(string)
+					page.Type, _ = t.(string)
+				}
 
+				r, e := tx.Run(`match (u:User{username:$user})-[r:Control]->(t:Task{name:$name}),
+				(t)-[i:Include]->(p:Page{order:$order}), (p)-[c:Contains]->(pic:Pic) return c.title as title, pic.path as path, c.order as order order by c.order`,
+					map[string]interface{}{"user": user, "name": task_name, "order": orderint})
+				if e != nil {
+					panic(e)
+				}
+
+				var pics []Pic
+				for r.Next() {
+					rec := r.Record()
+					var pic Pic
+					title, _ := rec.Get("title")
+					path, _ := rec.Get("path")
+					order, _ := rec.Get("order")
+					pic.Title, _ = title.(string)
+					pic.Path, _ = path.(string)
+					pic.Order, _ = order.(int64)
+					pics = append(pics, pic)
+				}
+				page.Pics = pics
+				pages = append(pages, page)
+			}
+			return pages, nil
+		})
 	}
+	j, _ := json.Marshal(results)
+	f.WriteString(string(j))
+	f.Close()
+	cmd := exec.Command("python", "myppt.py", user, task_name, task_type)
+	e = cmd.Run()
+	if e != nil {
+		fmt.Print(e)
+	}
+	c.Ctx.WriteString("1")
 
 }
 
 func (c *TaskController) Delete() {
-	if c.Ctx.GetCookie("username") == "" {
+	username, _ := url.QueryUnescape(c.Ctx.GetCookie("username"))
+	if username == "" {
 		c.TplName = "signin.html"
 		return
 	}
-	username := c.Ctx.GetCookie("username")
 	task_name := c.GetString("name")
 
 	driver, err := neo4j.NewDriver(dbUri, neo4j.BasicAuth("neo4j", "980115", ""))
@@ -847,7 +920,8 @@ func (c *TaskController) Delete() {
 }
 
 func (c *PageController) Get() { //changePage ?p=
-	if c.Ctx.GetCookie("username") == "" {
+	username, _ := url.QueryUnescape(c.Ctx.GetCookie("username"))
+	if username == "" {
 		c.TplName = "signin.html"
 		return
 	}
@@ -1000,7 +1074,8 @@ func (c *PageController) Get() { //changePage ?p=
 }
 
 func (c *PageController) Get_pages() {
-	if c.Ctx.GetCookie("username") == "" {
+	username, _ := url.QueryUnescape(c.Ctx.GetCookie("username"))
+	if username == "" {
 		c.TplName = "signin.html"
 		return
 	}
@@ -1036,7 +1111,8 @@ func (c *PageController) Get_pages() {
 }
 
 func (c *PageController) Addtoend() {
-	if c.Ctx.GetCookie("username") == "" {
+	username, _ := url.QueryUnescape(c.Ctx.GetCookie("username"))
+	if username == "" {
 		c.TplName = "signin.html"
 		return
 	}
@@ -1079,7 +1155,8 @@ func (c *PageController) Addtoend() {
 }
 
 func (c *PageController) Addtonext() {
-	if c.Ctx.GetCookie("username") == "" {
+	username, _ := url.QueryUnescape(c.Ctx.GetCookie("username"))
+	if username == "" {
 		c.TplName = "signin.html"
 		return
 	}
@@ -1123,7 +1200,8 @@ func (c *PageController) Addtonext() {
 }
 
 func (c *PageController) DeletePage() {
-	if c.Ctx.GetCookie("username") == "" {
+	username, _ := url.QueryUnescape(c.Ctx.GetCookie("username"))
+	if username == "" {
 		c.TplName = "signin.html"
 		return
 	}
@@ -1176,7 +1254,8 @@ func (c *PageController) DeletePage() {
 }
 
 func (c *PicsController) Getbv() {
-	if c.Ctx.GetCookie("username") == "" {
+	username, _ := url.QueryUnescape(c.Ctx.GetCookie("username"))
+	if username == "" {
 		c.TplName = "signin.html"
 		return
 	}
@@ -1217,7 +1296,8 @@ func (c *PicsController) Getbv() {
 }
 
 func (c *PageController) Upload_pic() { //竞品分析&特色化案例库页面上传图片
-	if c.Ctx.GetCookie("username") == "" {
+	username, _ := url.QueryUnescape(c.Ctx.GetCookie("username"))
+	if username == "" {
 		c.TplName = "signin.html"
 		return
 	}
@@ -1306,7 +1386,8 @@ func (c *PageController) Downloadppt() {
 }
 
 func (c *PageController) Autosave() {
-	if c.Ctx.GetCookie("username") == "" {
+	username, _ := url.QueryUnescape(c.Ctx.GetCookie("username"))
+	if username == "" {
 		c.TplName = "signin.html"
 		return
 	}

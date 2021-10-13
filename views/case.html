@@ -570,6 +570,7 @@
                 }
                 $("#img" + this.whichtoupload).attr('src', '');
                 $("#img-title" + this.whichtoupload).val('');
+                this.info.pics[this.whichtoupload].path = '';
                 this.autosave();
             },
             export_pptx: function () {

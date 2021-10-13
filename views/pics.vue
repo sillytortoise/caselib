@@ -9,7 +9,7 @@
 			</el-switch>
 			<myupload :switch="switchvalue" @afterupload="afterupload"></myupload>
 		</div>
-
+		<el-divider></el-divider>
 		<selfunc ref="imgb_selfunc" @change="conschange" :strict="true"></selfunc>
 
 		<div class="block">
