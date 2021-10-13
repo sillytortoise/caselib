@@ -4,6 +4,10 @@
 
 ![数据库对象设计](https://github.com/sillytortoise/caselib/blob/master/%E6%95%B0%E6%8D%AE%E5%BA%93%E5%AF%B9%E8%B1%A1%E8%AE%BE%E8%AE%A1.png?raw=true)
 
+![竞品分析placeholder示意图](https://github.com/sillytortoise/caselib/blob/master/%E7%AB%9E%E5%93%81%E5%88%86%E6%9E%90placeholder%E7%A4%BA%E6%84%8F%E5%9B%BE.png)
+
+![特色化案例库placeholder示意图](https://github.com/sillytortoise/caselib/blob/master/%E7%89%B9%E8%89%B2%E5%8C%96%E6%A1%88%E4%BE%8B%E5%BA%93placeholder%E7%A4%BA%E6%84%8F%E5%9B%BE.png)
+
 
 
 ### 特色化案例库页面  节点字段
@@ -139,14 +143,11 @@ idea 应用思路
 
 
 
-bug:
+bug 
 
-1. analysis 图片用el-image
-2. 改图片路径
-3. 改setpic
-4. 改autosave
-5. 改upload方法
-6. 改上传时src blob情况
+1. 改upload方法
+
+   
 
 新增功能
 
